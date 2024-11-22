@@ -19,10 +19,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load data (assuming file paths are correct)
-lina1 = gpd.read_file("cityline_2025.geojson")
-pop = pd.read_csv("ibuafjoldi.csv")
-smallarea = gpd.read_file("smasvaedi_2021.json")
-dwellings = pd.read_csv("ibudir.csv")
+lina1 = gpd.read_file("given_data/cityline_geojson/cityline_2025.geojson")
+pop = pd.read_csv("given_data/ibuafjoldi.csv")
+smallarea = gpd.read_file("given_data/smasvaedi_2021.json")
+dwellings = pd.read_csv("given_data/ibudir.csv")
 
 # Reproject to WGS 84
 lina1 = lina1.to_crs(epsg=4326)

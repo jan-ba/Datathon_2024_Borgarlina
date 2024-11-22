@@ -2,3 +2,4 @@ pyproj
 geopandas
 pandas
 matplotlib
+seaborn
