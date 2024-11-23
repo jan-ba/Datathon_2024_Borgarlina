@@ -51,8 +51,9 @@ def create_map(lina1_wgs84, all_dwellings_smallarea):
 
     # The 'dagsetning' column does not exist in all_dwellings_smallarea
     #all_dwellings_smallarea['dagsetning'] = all_dwellings_smallarea['dagsetning'].astype(str)
-
+    print(all_dwellings_smallarea.dtypes)
     # Add polygons to the map
+    all_dwellings_smallarea['pubdate'] = all_dwellings_smallarea['pubdate'].astype(str)
     folium.Choropleth(
         geo_data=all_dwellings_smallarea[all_dwellings_smallarea['nuts3'] == '001'].to_json(),
         name="choropleth",
@@ -73,10 +74,10 @@ def create_map(lina1_wgs84, all_dwellings_smallarea):
     return m
 
 def main():
-  geojson_file = "given_data/cityline_geojson/cityline_2025.geojson"
-  pop_file = "given_data/ibuafjoldi.csv"
-  smallarea_file = "given_data/smasvaedi_2021.json"
-  dwellings_file = "given_data/ibudir.csv"
+  geojson_file = "../given_data/cityline_geojson/cityline_2025.geojson"
+  pop_file = "../given_data/ibuafjoldi.csv"
+  smallarea_file = "../given_data/smasvaedi_2021.json"
+  dwellings_file = "../given_data/ibudir.csv"
 
   lina1_wgs84, pop2024_smallarea, all_dwellings_smallarea = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
   create_map(lina1_wgs84, all_dwellings_smallarea)  # Call the function to create the map

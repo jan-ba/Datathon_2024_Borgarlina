@@ -34,6 +34,7 @@ def get_age_distribution(years, smsv_ids, filename):
 
                 if row_smsv_id not in age_distributions:
                     age_distributions[row_smsv_id] = {}
+
                 if row_year not in age_distributions[row_smsv_id]:
                     age_distributions[row_smsv_id][row_year] = {}
                 
@@ -47,7 +48,8 @@ if __name__ == '__main__':
     # Example usage:
     filename = os.path.join('given_data', 'ibuafjoldi.csv')
     smsv_ids_to_find = ['0103', '2903', '4002']  # List of desired smsv_ids
-    age_dist = get_age_distribution([2017, 2024],smsv_ids_to_find, filename)
+    years = [2017, 2024]
+    age_dist = get_age_distribution(years, smsv_ids_to_find, filename)
 
     for smsv_id, distributions in age_dist.items():
         print(f"Age Distribution for SMSV ID: {smsv_id}")
