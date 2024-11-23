@@ -13,8 +13,8 @@ def open_file(filename):
         print(f"An error occurred: {e}")
         return []
     
-def get_age_distribution(year, smsv_ids, filename):
-    age_distributions = {smsv_id: {} for smsv_id in smsv_ids} # Initialize output dict
+def get_age_distribution(years, smsv_ids, filename):
+    age_distributions = {smsv_id: {year: {} for year in years} for smsv_id in smsv_ids} # Initialize output dict
     csv_data = open_file(filename)
 
     if csv_data: # Check if data is not empty 
@@ -27,7 +27,7 @@ def get_age_distribution(year, smsv_ids, filename):
         for row in csv_data[1:]: # Skip header
             row_smsv_id = row[smsv_id_index]
             row_year = int(row[year_index])
-            if row_smsv_id in smsv_ids and row_year == year:
+            if row_smsv_id in smsv_ids and row_year in years:
                 age_group = row[agegroup_index]
                 population = int(row[population_index])
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # Example usage:
     filename = './given_data/ibuafjoldi.csv'
     smsv_ids_to_find = ['0103', '2903', '4002']  # List of desired smsv_ids
-    age_dist = get_age_distribution(2017,smsv_ids_to_find, filename)
+    age_dist = get_age_distribution([2017, 2024],smsv_ids_to_find, filename)
 
     for smsv_id, distributions in age_dist.items():
         print(f"Age Distribution for SMSV ID: {smsv_id}")
