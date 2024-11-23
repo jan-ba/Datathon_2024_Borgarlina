@@ -4,11 +4,21 @@ from ipyleaflet import Map
 
 from datetime import datetime
 # Load data and compute static values
+from borgarlina3_leaflet import create_map, load_and_preprocess_data
 from shared import app_dir, tips
 from shinywidgets import render_widget 
 
 from shiny import reactive, render
 from shiny.express import input, ui
+
+def generateStops():
+    geojson_file = "../given_data/cityline_geojson/cityline_2025.geojson"
+    pop_file = "../given_data/ibuafjoldi.csv"
+    smallarea_file = "../given_data/smasvaedi_2021.json"
+    dwellings_file = "../given_data/ibudir.csv"
+
+    lina1_wgs84, pop2024_smallarea, all_dwellings_smallarea = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
+    return create_map(lina1_wgs84, all_dwellings_smallarea)
 
 bill_rng = (min(tips.total_bill), max(tips.total_bill))
 
@@ -38,9 +48,6 @@ ICONS = {
     "ellipsis": fa.icon_svg("ellipsis"),
 }
 
-def df():
-
-    return "" #getData()
 
 # MAP 
 with ui.layout_columns(col_widths=[8, 4]):
@@ -50,14 +57,14 @@ with ui.layout_columns(col_widths=[8, 4]):
         
         @render_widget  
         def map():
-            return Map(center=(50.6252978589571, 0.34580993652344), zoom=3)  
+            return Map(generateStops(), center=(50.6252978589571, 0.34580993652344), zoom=3)  
     with ui.layout_column_wrap(width="250px"):
         with ui.card(full_screen=False):
             ui.card_header("Stop Data")
             @render_widget  
             def table1():
                 return render.DataTable(
-                    df(),
+                    {},
                     width="250px",
                     height="100px"
                 )
@@ -67,7 +74,7 @@ with ui.layout_columns(col_widths=[8, 4]):
             @render_widget  
             def table2():
                 return render.DataTable(
-                    df(),
+                    {},
                     width="250px",
                     height="100px"
                 )
@@ -77,7 +84,7 @@ with ui.layout_columns(col_widths=[8, 4]):
             @render_widget  
             def table3():
                 return render.DataTable(
-                    df(),
+                    {},
                     width="250px",
                     height="100px"
                 )
