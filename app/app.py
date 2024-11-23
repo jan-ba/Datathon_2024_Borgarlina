@@ -120,9 +120,16 @@ def _():
     year = input.year()
     stops = generateStops(year)
     markers = []
+    
+    for layer in map.widget.layers:
+        if layer.name 
+
+    map.widget.remove_layer(existingLayers[])
     for i in stops:
         marker = Marker(location=i)
         markers.append(marker)
     
-    layerGroup = LayerGroup(layers=markers)
+    layerGroup = LayerGroup(layers=markers, name=stops)
     map.widget.add(layerGroup)
+    
+    
