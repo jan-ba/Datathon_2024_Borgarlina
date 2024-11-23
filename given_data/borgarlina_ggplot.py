@@ -49,7 +49,7 @@ for _, row in filtered_smallarea.iterrows():
     # Get the centroid of each small area
     centroid = row.geometry.centroid
     # Place the ID as text at the centroid
-    ax.text(centroid.x, centroid.y, str(row['id']), fontsize=8, color='darkred', ha='center')
+    ax.text(centroid.x, centroid.y, str(row['smsv']), fontsize=8, color='darkred', ha='center')
 
 ax.set_title("Filtered Small Areas with IDs Written Inside")
 plt.show()
