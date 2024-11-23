@@ -51,8 +51,9 @@ def create_map(lina1_wgs84, all_dwellings_smallarea):
 
     # The 'dagsetning' column does not exist in all_dwellings_smallarea
     #all_dwellings_smallarea['dagsetning'] = all_dwellings_smallarea['dagsetning'].astype(str)
-
+    print(all_dwellings_smallarea.dtypes)
     # Add polygons to the map
+    all_dwellings_smallarea['pubdate'] = all_dwellings_smallarea['pubdate'].astype(str)
     folium.Choropleth(
         geo_data=all_dwellings_smallarea[all_dwellings_smallarea['nuts3'] == '001'].to_json(),
         name="choropleth",

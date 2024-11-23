@@ -57,7 +57,8 @@ with ui.layout_columns(col_widths=[8, 4]):
         
         @render_widget  
         def map():
-            return Map(generateStops(), center=(50.6252978589571, 0.34580993652344), zoom=3)  
+            return Map(generateStops(), center=(64.11,-21.90), zoom=11.5)  
+
     with ui.layout_column_wrap(width="250px"):
         with ui.card(full_screen=False):
             ui.card_header("Stop Data")
