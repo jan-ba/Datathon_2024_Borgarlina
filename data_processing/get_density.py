@@ -4,7 +4,7 @@ from shapely.geometry import Polygon
 from pyproj import Geod
 
 
-def get_desity(polygon_coordinates: List[Tuple], population: int):
+def get_density(polygon_coordinates: List[Tuple], population: int) -> float:
     """
     Calculate the population density of a polygon with geographic coordinates.
 
