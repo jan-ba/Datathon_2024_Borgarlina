@@ -1,34 +1,43 @@
 import faicons as fa
-import plotly.express as px
 
+from ipyleaflet import Map
+
+from datetime import datetime
 # Load data and compute static values
+from borgarlina3_leaflet import create_map, load_and_preprocess_data
 from shared import app_dir, tips
-from shinywidgets import render_plotly
+from shinywidgets import render_widget 
 
 from shiny import reactive, render
 from shiny.express import input, ui
 
+def generateStops():
+    geojson_file = "../given_data/cityline_geojson/cityline_2025.geojson"
+    pop_file = "../given_data/ibuafjoldi.csv"
+    smallarea_file = "../given_data/smasvaedi_2021.json"
+    dwellings_file = "../given_data/ibudir.csv"
+
+    lina1_wgs84, pop2024_smallarea, all_dwellings_smallarea = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
+    return create_map(lina1_wgs84, all_dwellings_smallarea)
+
 bill_rng = (min(tips.total_bill), max(tips.total_bill))
 
 # Add page title and sidebar
-ui.page_opts(title="Restaurant tipping", fillable=True)
+ui.page_opts(title="Borgarlínan", fillable=True)
 
-with ui.sidebar(open="desktop"):
-    ui.input_slider(
-        "total_bill",
-        "Bill amount",
-        min=bill_rng[0],
-        max=bill_rng[1],
-        value=bill_rng,
-        pre="$",
-    )
+with ui.sidebar(open="open"):
+
+    ui.input_slider("year", "Years:", min=2024 , max=2030, value=1)
+    ui.input_text("inputParam", "Param", "")
+    
     ui.input_checkbox_group(
         "time",
-        "Food service",
-        ["Lunch", "Dinner"],
-        selected=["Lunch", "Dinner"],
+        "Stuffs",
+        ["Param1", "Param2"],
+        selected=["Param1", "Param2"],
         inline=True,
     )
+
     ui.input_action_button("reset", "Reset filter")
 
 # Add main content
@@ -39,107 +48,48 @@ ICONS = {
     "ellipsis": fa.icon_svg("ellipsis"),
 }
 
-with ui.layout_columns(fill=False):
-    with ui.value_box(showcase=ICONS["user"]):
-        "Total tippers"
 
-        @render.express
-        def total_tippers():
-            tips_data().shape[0]
-
-    with ui.value_box(showcase=ICONS["wallet"]):
-        "Average tip"
-
-        @render.express
-        def average_tip():
-            d = tips_data()
-            if d.shape[0] > 0:
-                perc = d.tip / d.total_bill
-                f"{perc.mean():.1%}"
-
-    with ui.value_box(showcase=ICONS["currency-dollar"]):
-        "Average bill"
-
-        @render.express
-        def average_bill():
-            d = tips_data()
-            if d.shape[0] > 0:
-                bill = d.total_bill.mean()
-                f"${bill:.2f}"
-
-
-with ui.layout_columns(col_widths=[6, 6, 12]):
+# MAP 
+with ui.layout_columns(col_widths=[8, 4]):
     with ui.card(full_screen=True):
-        ui.card_header("Tips data")
+        ui.card_header("Capital area")
 
-        @render.data_frame
-        def table():
-            return render.DataGrid(tips_data())
-
-    with ui.card(full_screen=True):
-        with ui.card_header(class_="d-flex justify-content-between align-items-center"):
-            "Total bill vs tip"
-            with ui.popover(title="Add a color variable", placement="top"):
-                ICONS["ellipsis"]
-                ui.input_radio_buttons(
-                    "scatter_color",
-                    None,
-                    ["none", "sex", "smoker", "day", "time"],
-                    inline=True,
+        
+        @render_widget  
+        def map():
+            return Map(generateStops(), center=(50.6252978589571, 0.34580993652344), zoom=3)  
+    with ui.layout_column_wrap(width="250px"):
+        with ui.card(full_screen=False):
+            ui.card_header("Stop Data")
+            @render_widget  
+            def table1():
+                return render.DataTable(
+                    {},
+                    width="250px",
+                    height="100px"
                 )
-
-        @render_plotly
-        def scatterplot():
-            color = input.scatter_color()
-            return px.scatter(
-                tips_data(),
-                x="total_bill",
-                y="tip",
-                color=None if color == "none" else color,
-                trendline="lowess",
-            )
-
-    with ui.card(full_screen=True):
-        with ui.card_header(class_="d-flex justify-content-between align-items-center"):
-            "Tip percentages"
-            with ui.popover(title="Add a color variable"):
-                ICONS["ellipsis"]
-                ui.input_radio_buttons(
-                    "tip_perc_y",
-                    "Split by:",
-                    ["sex", "smoker", "day", "time"],
-                    selected="day",
-                    inline=True,
+        
+        with ui.card(full_screen=False):
+            ui.card_header("Stop Data1")
+            @render_widget  
+            def table2():
+                return render.DataTable(
+                    {},
+                    width="250px",
+                    height="100px"
                 )
-
-        @render_plotly
-        def tip_perc():
-            from ridgeplot import ridgeplot
-
-            dat = tips_data()
-            dat["percent"] = dat.tip / dat.total_bill
-            yvar = input.tip_perc_y()
-            uvals = dat[yvar].unique()
-
-            samples = [[dat.percent[dat[yvar] == val]] for val in uvals]
-
-            plt = ridgeplot(
-                samples=samples,
-                labels=uvals,
-                bandwidth=0.01,
-                colorscale="viridis",
-                colormode="row-index",
-            )
-
-            plt.update_layout(
-                legend=dict(
-                    orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5
+        
+        with ui.card(full_screen=False):
+            ui.card_header("Stop Data2")
+            @render_widget  
+            def table3():
+                return render.DataTable(
+                    {},
+                    width="250px",
+                    height="100px"
                 )
-            )
-
-            return plt
-
-
+        
+        
 ui.include_css(app_dir / "styles.css")
 
 # --------------------------------------------------------

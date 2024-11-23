@@ -2,8 +2,9 @@
 from typing import List, Tuple
 from pyproj import Geod
 from get_smallAreaInfo import get_smallAreas
+from shapely.geometry import Polygon
 
-def get_density(polygon_coordinates: List[Tuple], population: int) -> float:
+def get_density(polygon_coordinates: List[Tuple[float, float]], population: int) -> float:
     """
     Calculate the population density of a polygon with geographic coordinates.
 
@@ -14,23 +15,15 @@ def get_density(polygon_coordinates: List[Tuple], population: int) -> float:
     Returns:
         float: Population density (population per square meter).
     """
-    # parse lat and long into seperate arrays
-    # print(polygon_coordinates)
-    lat = [lat_val[0] for lat_val in polygon_coordinates]
-    long = [long_val[1] for long_val in polygon_coordinates]
-    print(lat)
-    print(long)
-    geod = Geod(ellps="WGS84")
-    
-    area, _ = geod.polygon_area_perimeter(long, lat)
-    print(area)
-    area = abs(area)    
+    if polygon_coordinates[0] != polygon_coordinates[-1]:
+        polygon_coordinates.append(polygon_coordinates[0])
+
+    polygon = Polygon(polygon_coordinates)
+
+    area = polygon.area
     if area == 0:
         raise ValueError("The polygon area is zero. Cannot calculate density.")
-    
+
     return population / area
 
-smsv = get_smallAreas()
-example = smsv[1]
-res = get_density(example[1], 100)
-print(res)
+
