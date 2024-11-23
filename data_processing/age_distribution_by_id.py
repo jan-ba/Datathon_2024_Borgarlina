@@ -1,4 +1,5 @@
 import csv
+import os
 
 def open_file(filename):
     try:
@@ -44,7 +45,7 @@ def get_age_distribution(years, smsv_ids, filename):
 
 if __name__ == '__main__':
     # Example usage:
-    filename = './given_data/ibuafjoldi.csv'
+    filename = os.path.join('given_data', 'ibuafjoldi.csv')
     smsv_ids_to_find = ['0103', '2903', '4002']  # List of desired smsv_ids
     age_dist = get_age_distribution([2017, 2024],smsv_ids_to_find, filename)
 

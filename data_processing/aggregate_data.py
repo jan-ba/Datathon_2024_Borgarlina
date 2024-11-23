@@ -1,5 +1,7 @@
 import csv
 from age_distribution_by_id import get_age_distribution
+from get_smallAreaInfo import get_smallAreas
+
 
 # Small area id: id of the small area
 # Density: current density of the small area
@@ -21,5 +23,8 @@ def open_file(filename):
     except Exception as e:
         print(f"An error occurred: {e}")
         return []
-    
+
+# get list of smsv, each represented as {"id": smsv_id, "geometry": [(long, lat), ...]}
+smsv_id_geom = get_smallAreas()
+# get_age_distribution([2024] , [smsv["id"] for smsv in smsv_id_geom], "")
 

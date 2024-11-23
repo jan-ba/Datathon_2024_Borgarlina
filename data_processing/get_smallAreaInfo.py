@@ -10,9 +10,8 @@ with open(file_path, 'r', encoding='utf-8') as file:
 
 def get_smallAreas():
     '''
-    Returns a list of tuples where each tuple (id, geometry) contains
-    the smsv ID and the corresponding geometry (coordinates) for 
-    features in Höfuðborgarsvæði.
+    Returns a list of dict of format {"id": smsv_id, "geometry": [(long, lat), ...]} 
+    for all smsv in in Höfuðborgarsvæði.
     '''
     # Extract smsv IDs and geometries for Höfuðborgarsvæði
     hofudborgarsvaedi_areas = []
@@ -31,5 +30,9 @@ def get_smallAreas():
 
                 hofudborgarsvaedi_areas.append({"id": smsv, "geometry": processed_geometry})
     
+    ids = [area["id"] for area in hofudborgarsvaedi_areas]
+    if len(ids) != len(set(ids)):
+        duplicates = [smsv for smsv in ids if ids.count(smsv) > 1]
+        raise ValueError(f"Duplicate IDs found: {set(duplicates)}")
 
     return hofudborgarsvaedi_areas
