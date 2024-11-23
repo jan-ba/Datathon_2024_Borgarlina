@@ -1,52 +1,35 @@
 import json
 import os
-import geopandas as gpd
 
+# Define the file path
+file_path = os.path.join('given_data', 'smasvaedi_2021.json')
 
-def get_smallAreas(file_path):
+# Load the JSON data
+with open(file_path, 'r', encoding='utf-8') as file:
+    data = json.load(file)
+
+def get_smallAreas():
     '''
-    Reads the given GeoJSON file and returns a list of dicts of the format 
-    {"id": smsv_id, "geometry": [(long, lat), ...]} for all smsv in Höfuðborgarsvæði.
-    The function reads the data using GeoPandas, converts coordinates to a specified CRS, 
-    and processes the data to extract the required information.
+    Returns a list of dict of format {"id": smsv_id, "geometry": [(long, lat), ...]} 
+    for all smsv in in Höfuðborgarsvæði.
     '''
-    # Load the data using GeoPandas
-    gdf = gpd.read_file(file_path)
-    
-    # Define the desired coordinate reference system (CRS)
-    gdf = gdf.to_crs(epsg=3057)
-    
     # Extract smsv IDs and geometries for Höfuðborgarsvæði
     hofudborgarsvaedi_areas = []
 
-    # Filter the GeoDataFrame for features in Höfuðborgarsvæði
-    filtered_gdf = gdf[gdf['nuts3_label'] == "Höfuðborgarsvæði"]
+    for feature in data['features']:
+        if feature['properties'].get('nuts3_label') == "Höfuðborgarsvæði":
+            smsv = feature['properties'].get('smsv')
+            raw_geometry = feature['geometry']
+            if smsv and raw_geometry:
+                # Extract coordinates and convert to list of tuples
+                processed_geometry = []
+                for polygon in raw_geometry['coordinates']:
+                    # for ring in polygon:  # Each "ring" of the MultiPolygon
+                    #     processed_geometry.append([(x, y) for x, y in ring])
+                    processed_geometry = [(x, y) for x, y in polygon[0]]
 
-    for idx, row in filtered_gdf.iterrows():
-        smsv = row.get('smsv')
-        geometry = row.geometry  # This is a shapely geometry object
-        if smsv and geometry:
-            # Extract coordinates from the geometry
-            processed_geometry = []
-
-            if geometry.geom_type == 'Polygon':
-                # For Polygons, get the exterior coordinates
-                coords = list(geometry.exterior.coords)
-                processed_geometry = [(x, y) for x, y in coords]
-            elif geometry.geom_type == 'MultiPolygon':
-                # For MultiPolygons, iterate over each polygon (in the future perhaps)
-                # for polygon in geometry.geoms:
-                #     coords = list(polygon.exterior.coords)
-                #     processed_geometry.extend([(x, y) for x, y in coords])
-                coords = list(geometry.geoms[0].exterior.coords)
-                processed_geometry = [(x, y) for x, y in coords]
-            else:
-                # Handle other geometry types if necessary
-                continue
-
-            hofudborgarsvaedi_areas.append({"id": smsv, "geometry": processed_geometry})
-
-    # Check for duplicate IDs
+                hofudborgarsvaedi_areas.append({"id": smsv, "geometry": processed_geometry})
+    
     ids = [area["id"] for area in hofudborgarsvaedi_areas]
     if len(ids) != len(set(ids)):
         duplicates = [smsv for smsv in ids if ids.count(smsv) > 1]

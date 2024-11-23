@@ -49,14 +49,14 @@ def get_station_coverage(
 
     return covered_areas
 
+if __name__ == '__main__':
+    # Example station location and radius
+    station_coords = (356250.0, 408250.0)  # EPSG:3057 coordinates
+    radius_meters = 400  # 400 meters
 
-# Example station location and radius
-station_coords = (356250.0, 408250.0)  # EPSG:3057 coordinates
-radius_meters = 0  # 400 meters
+    # Get small areas
+    covered_areas = get_station_coverage(get_smallAreas("given_data/smasvaedi_2021.json"), station_coords, radius_meters)
 
-# Get small areas
-covered_areas = get_station_coverage(get_smallAreas("given_data/smasvaedi_2021.json"), station_coords, radius_meters)
-
-# Print results
-for area in covered_areas:
-    print(f"Area ID: {area['id']}, Coverage: {area['coverage_percentage']:.2f}%")
+    # Print results
+    for area in covered_areas:
+        print(f"Area ID: {area['id']}, Coverage: {area['coverage_percentage']:.2f}%")

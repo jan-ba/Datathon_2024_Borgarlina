@@ -1,7 +1,6 @@
 
 from typing import List, Tuple
 from pyproj import Geod
-from get_smallAreaInfo import get_smallAreas
 from shapely.geometry import Polygon
 
 def get_density(polygon_coordinates: List[Tuple[float, float]], population: int) -> float:
