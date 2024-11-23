@@ -1,7 +1,8 @@
 import faicons as fa
 
-from ipyleaflet import Map
+from ipyleaflet import Map, Marker, LayerGroup
 
+import geopandas as gpd
 from datetime import datetime
 # Load data and compute static values
 from borgarlina3_leaflet import create_map, load_and_preprocess_data
@@ -11,14 +12,21 @@ from shinywidgets import render_widget
 from shiny import reactive, render
 from shiny.express import input, ui
 
-def generateStops():
-    geojson_file = "../given_data/cityline_geojson/cityline_2025.geojson"
+def generateStops(year):
+    geojson_file = f"../given_data/cityline_geojson/cityline_{year}.geojson"
     pop_file = "../given_data/ibuafjoldi.csv"
     smallarea_file = "../given_data/smasvaedi_2021.json"
     dwellings_file = "../given_data/ibudir.csv"
 
-    lina1_wgs84, pop2024_smallarea, all_dwellings_smallarea = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
-    return create_map(lina1_wgs84, all_dwellings_smallarea)
+    gpdStops, _, _ = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
+
+    points = []
+
+    # Assuming your GeoDataFrame is named 'gdf'
+    for _, row in gpdStops.iterrows():
+        point = row["geometry"]
+        points.append((point.y, point.x))
+    return points
 
 bill_rng = (min(tips.total_bill), max(tips.total_bill))
 
@@ -27,7 +35,8 @@ ui.page_opts(title="Borgarlínan", fillable=True)
 
 with ui.sidebar(open="open"):
 
-    ui.input_slider("year", "Years:", min=2024 , max=2030, value=1)
+    ui.input_select("year", "Year:", 
+                    {2025: "2025", 2029: "2029", 2030: "2030"})
     ui.input_text("inputParam", "Param", "")
     
     ui.input_checkbox_group(
@@ -57,9 +66,9 @@ with ui.layout_columns(col_widths=[8, 4]):
         
         @render_widget  
         def map():
-            return Map(generateStops(), center=(64.11,-21.90), zoom=11.5)  
+            return Map(center=(64.11,-21.90), zoom=11.5)  
 
-    with ui.layout_column_wrap(width="250px"):
+    '''with ui.layout_column_wrap(width="250px"):
         with ui.card(full_screen=False):
             ui.card_header("Stop Data")
             @render_widget  
@@ -88,7 +97,7 @@ with ui.layout_columns(col_widths=[8, 4]):
                     {},
                     width="250px",
                     height="100px"
-                )
+                )'''
         
         
 ui.include_css(app_dir / "styles.css")
@@ -107,7 +116,13 @@ def tips_data():
 
 
 @reactive.effect
-@reactive.event(input.reset)
 def _():
-    ui.update_slider("total_bill", value=bill_rng)
-    ui.update_checkbox_group("time", selected=["Lunch", "Dinner"])
+    year = input.year()
+    stops = generateStops(year)
+    markers = []
+    for i in stops:
+        marker = Marker(location=i)
+        markers.append(marker)
+    
+    layerGroup = LayerGroup(layers=markers)
+    map.widget.add(layerGroup)

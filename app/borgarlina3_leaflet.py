@@ -74,7 +74,7 @@ def create_map(lina1_wgs84, all_dwellings_smallarea):
     return m
 
 def main():
-  geojson_file = "../given_data/cityline_geojson/cityline_2025.geojson"
+  geojson_file = "../given_data/cityline_geojson/cityline_2030.geojson"
   pop_file = "../given_data/ibuafjoldi.csv"
   smallarea_file = "../given_data/smasvaedi_2021.json"
   dwellings_file = "../given_data/ibudir.csv"
