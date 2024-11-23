@@ -29,13 +29,7 @@ def get_smallAreas():
                     #     processed_geometry.append([(x, y) for x, y in ring])
                     processed_geometry = [(x, y) for x, y in polygon[0]]
 
-                hofudborgarsvaedi_areas.append((smsv, processed_geometry))
-
-    # Check for duplicate IDs
-    ids = [area[0] for area in hofudborgarsvaedi_areas]
-    unique_ids = set(ids)
-    if len(unique_ids) < len(ids):
-        duplicates = [smsv for smsv in ids if ids.count(smsv) > 1]
-        raise ValueError(f"Duplicates found! Duplicate IDs: {set(duplicates)}")
+                hofudborgarsvaedi_areas.append({"id": smsv, "geometry": processed_geometry})
     
+
     return hofudborgarsvaedi_areas
