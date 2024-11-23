@@ -5,11 +5,15 @@ from get_density import get_density
 from income_decile_by_id import get_income_decile
 import os
 import pandas as pd
+import geopandas as gpd
 
 
 # Specify file paths here
-file_ibuafjoldi = os.path.join('given_data', 'ibuafjoldi.csv')
-file_tekjutiundir = os.path.join('given_data', 'tekjutiundir.csv')
+csv_ibuafjoldi = os.path.join('given_data', 'ibuafjoldi.csv')
+csv_tekjutiundir = os.path.join('given_data', 'tekjutiundir.csv')
+json_ibuafjoldi = os.path.join('given_data', 'smasvaedi_2021.json')
+
+smallareas = gpd.read_file("given_data/smasvaedi_2021.json")
 
 # Small area id: id of the small area
 # Density: current density of the small area
@@ -19,30 +23,17 @@ file_tekjutiundir = os.path.join('given_data', 'tekjutiundir.csv')
 # Projected dwellings: 
 columns = ["smallAreaId", "density", "income_distribution_per_year", "age_distribution", "geometry", "projected_dwellings"]
 
-def open_file(filename):
-    try:
-        with open(filename, 'r', newline='', encoding='utf-8') as file:
-            csv_reader = csv.reader(file)
-            data = list(csv_reader)
-            return data
-    except FileNotFoundError:
-        print(f"File {filename} not found.")
-        return []
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return []
-
 # get list of smsv, each represented as {"id": smsv_id, "geometry": [(long, lat), ...]}
-smsv_id_geom = get_smallAreas()
+smsv_id_geom = get_smallAreas(json_ibuafjoldi)
 smsv_ids = [smsv["id"] for smsv in smsv_id_geom]  # list of smsv ids
 
 # for each smsv_id get the age distribution for several years if required
 years = [2023, 2024]  # Example years for age distribution
-age_distribution = get_age_distribution(years, smsv_ids, file_ibuafjoldi)  # Dict with age data
+age_distribution = get_age_distribution(years, smsv_ids, csv_ibuafjoldi)  # Dict with age data
 
 # for each smsv_id get the income distribution (distributed in deciles) for several years if required
 years = [2023, 2024]  # Example years for age distribution
-income_distribution = get_income_decile(years, smsv_ids, file_tekjutiundir)  # Dict with income data
+income_distribution = get_income_decile(years, smsv_ids, csv_tekjutiundir)  # Dict with income data
 
 # Populate pandas dataframe
 data = []
@@ -79,5 +70,5 @@ for smsv in smsv_id_geom:
 df = pd.DataFrame(data, columns=columns)
 
 # Display or save the DataFrame
-# print(df.head())
+print(df.head())
 df.to_csv('output.csv', index=False, encoding='utf-8')  # Save to CSV
