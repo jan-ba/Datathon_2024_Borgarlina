@@ -73,10 +73,10 @@ def create_map(lina1_wgs84, all_dwellings_smallarea):
     display(m)
 
 def main():
-  geojson_file = "cityline_2025.geojson"
-  pop_file = "ibuafjoldi.csv"
-  smallarea_file = "smasvaedi_2021.json"
-  dwellings_file = "ibudir.csv"
+  geojson_file = "given_data/cityline_geojson/cityline_2025.geojson"
+  pop_file = "given_data/ibuafjoldi.csv"
+  smallarea_file = "given_data/smasvaedi_2021.json"
+  dwellings_file = "given_data/ibudir.csv"
 
   lina1_wgs84, pop2024_smallarea, all_dwellings_smallarea = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
   create_map(lina1_wgs84, all_dwellings_smallarea)  # Call the function to create the map

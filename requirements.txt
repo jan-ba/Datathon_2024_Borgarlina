@@ -3,3 +3,6 @@ geopandas
 pandas
 matplotlib
 seaborn
+Ipython
+ipyleaflet
+folium
