@@ -2,12 +2,14 @@ import csv
 from age_distribution_by_id import get_age_distribution
 from get_smallAreaInfo import get_smallAreas
 from get_density import get_density
+from income_decile_by_id import get_income_decile
 import os
 import pandas as pd
 
 
 # Specify file paths here
 file_ibuafjoldi = os.path.join('given_data', 'ibuafjoldi.csv')
+file_tekjutiundir = os.path.join('given_data', 'tekjutiundir.csv')
 
 # Small area id: id of the small area
 # Density: current density of the small area
@@ -31,12 +33,16 @@ def open_file(filename):
         return []
 
 # get list of smsv, each represented as {"id": smsv_id, "geometry": [(long, lat), ...]}
-smsv_id_geom = get_smallAreas()[:2]
+smsv_id_geom = get_smallAreas()
 smsv_ids = [smsv["id"] for smsv in smsv_id_geom]  # list of smsv ids
 
 # for each smsv_id get the age distribution for several years if required
 years = [2023, 2024]  # Example years for age distribution
 age_distribution = get_age_distribution(years, smsv_ids, file_ibuafjoldi)  # Dict with age data
+
+# for each smsv_id get the income distribution (distributed in deciles) for several years if required
+years = [2023, 2024]  # Example years for age distribution
+income_distribution = get_income_decile(years, smsv_ids, file_tekjutiundir)  # Dict with income data
 
 # Populate pandas dataframe
 data = []
@@ -56,12 +62,14 @@ for smsv in smsv_id_geom:
 
     # Age distribution
     age_dist = age_distribution.get(smsv_id, {})
-    
+
+    # Income distribution
+    income_dist = income_distribution.get(smsv_id, {})
     # Add row to data
     data.append({
         "smallAreaId": smsv_id,
         "density": density,
-        "income_distribution_per_year": {},  # Placeholder for now
+        "income_distribution_per_year": income_dist,
         "age_distribution": age_dist,
         "geometry": geometry,
         "projected_dwellings": None  # Placeholder for now
@@ -71,5 +79,5 @@ for smsv in smsv_id_geom:
 df = pd.DataFrame(data, columns=columns)
 
 # Display or save the DataFrame
-print(df.head())
+# print(df.head())
 df.to_csv('output.csv', index=False, encoding='utf-8')  # Save to CSV
