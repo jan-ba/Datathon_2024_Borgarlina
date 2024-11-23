@@ -1,6 +1,5 @@
 
 from typing import List, Tuple
-from shapely.geometry import Polygon
 from pyproj import Geod
 
 
