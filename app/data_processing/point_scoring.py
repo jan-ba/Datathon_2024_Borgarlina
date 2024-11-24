@@ -72,7 +72,7 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
                 aggregated_income_distribution[income_group] = proportion
 
         # Calculate density score
-        density_contribution = smsv_info["density"].iloc[0] * w_density * smsv["small_zone_percentage"] * 100
+        density_contribution = smsv_info["density"].iloc[0] * w_density * smsv["small_zone_percentage"] * 200
 
         # Calculate age score
         age_contribution = get_age_score(age_dist) * w_age * smsv["small_zone_percentage"]
