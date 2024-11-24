@@ -19,10 +19,7 @@ from shiny.express import input, ui
 
 # Import from backend
 from data_processing.data_provider import Data_provider
-
-data = Data_provider()
-print(data)
-
+initBackend = Data_provider()
 def getScore(cords):
     pass
 
@@ -79,7 +76,10 @@ with ui.layout_columns(col_widths=[8, 4]):
             ui.card_header("Stop Data")
             @render.text
             def value():
-                return f"Selected bus stop: {stop.get()}"
+                x, y = stop.get()
+                print((y, x))
+                score = initBackend.get_station_score((y, x), radius=input.rad())
+                return f"Score: {score}"
             @render.plot(alt="A Seaborn histogram on penguin body mass in grams.")  
             def plot():  
                 ax = sns.histplot(data=[1,2,3,4,5,6,7,8,9], x="body_mass_g", bins=input.n())  
@@ -98,6 +98,7 @@ ui.include_css(app_dir / "styles.css")
 
 @reactive.effect
 def _():
+    
     year = input.year()
     stops = generateStops(year)
     rad = input.rad()
@@ -129,13 +130,12 @@ def _():
         icon = AwesomeIcon(name="bus", marker_color="black", icon_color="white")
         icon1 = DivIcon(html = '<div style="border-radius:50%;background-color: black; width: 10px; height: 10px;"></div>')
         icon2 = Icon(icon_url="marker.png")
-
         marker = Marker(location=stop,
                         icon=icon,
                         icon_anchor=(10,10),
                         icon_size=(0,0),
                         draggable=False)
-        marker.on_click(functools.partial(create_marker_callback, id=f"SET_ID_HERE {stop}"))
+        marker.on_click(functools.partial(create_marker_callback, id=stop))
         markers.append(marker)
     
     layerGroup = LayerGroup(layers=markers, name="stops")
@@ -144,7 +144,7 @@ def _():
     map.widget.add(layerGroup2)
     
     
-stop = reactive.value("Init")
+stop = reactive.value()
 
 def create_marker_callback(id, **kwargs):
     # We can also get coordinates of the marker here

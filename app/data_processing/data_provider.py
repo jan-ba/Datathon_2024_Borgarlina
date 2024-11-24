@@ -86,7 +86,7 @@ if __name__ == '__main__':
     dummy_coord2 = (-21.910388, 64.144947)  # EPSG:4326 coordinates
     dummy_coord3 = (358374.26032876654, 407938.72289760906) # ISN93/Lambert
     # dummy_coord3 = 
-    backend = data_provider()
+    backend = Data_provider()
     print("dummy_coord1: ", backend.get_station_score(dummy_coord1, EPSG_4326=False))
     print("dummy_coord2: ", backend.get_station_score(dummy_coord2))
     print("dummy_coord3: ", backend.get_station_score(dummy_coord3, EPSG_4326=False))
