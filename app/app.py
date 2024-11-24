@@ -49,20 +49,12 @@ ui.page_opts(title="Borgarlínan", fillable=True)
 with ui.sidebar(open="open"):
 
     ui.input_select("year", "Year:", {2025: "2025", 2029: "2029", 2030: "2030"})
-
+    ui.input_slider("rad", "Stop reach radius:", min=200, max=1000, value=400),
     # station_coord, w_density=1, w_income=1, w_age=1):
     ui.input_numeric("w_density", "Density Weight", "1")
     ui.input_numeric("w_income", "Income Weight", "1")
     ui.input_numeric("w_age", "Age Weight", "1")
-    ui.input_slider("rad", "Stop reach radius:", min=200, max=1000, value=400),
     
-    ui.input_checkbox_group(
-        "time",
-        "Stuffs",
-        ["Param1", "Param2"],
-        selected=["Param1", "Param2"],
-        inline=True,
-    )
 
     ui.input_action_button("reset", "Reset zoom")
 
@@ -84,31 +76,28 @@ with ui.layout_columns(col_widths=[8, 4]):
                     "Total Score"
                     @render.text
                     def totalScore():
-                        x, y = stop.get()
-                        score = initBackend.get_station_score((y, x), radius=input.rad())
+                        score = scores()
                         return f"{round(float(score["total_score"]), 2)}"
                 
                 with ui.nav_panel("Income"):
                     "Income Score"    
                     @render.text
                     def incomeScore():
-                        x, y = stop.get()
-                        score = initBackend.get_station_score((y, x), radius=input.rad())
+                        score = scores()
                         return f"{round(float(score["income_score"]), 2)}"
                 
                 with ui.nav_panel("Age"):
                     "Age Score" 
                     @render.text
                     def ageScore():
-                        x, y = stop.get()
-                        score = initBackend.get_station_score((y, x), radius=input.rad())
+                        score = scores()
                         return f"{round(float(score["age_score"]), 2)}"
-                with ui.nav_panel("Dencity"):
-                    "Dencity Score" 
+                    
+                with ui.nav_panel("Density"):
+                    "Density" 
                     @render.text
                     def sensityScoer():
-                        x, y = stop.get()
-                        score = initBackend.get_station_score((y, x), radius=input.rad())
+                        score = scores()
                         return f"{round(float(score["density_score"] * 1000000), 2)} Person / Kilometer"
                     
                     
@@ -218,3 +207,9 @@ def centerMap():
     mapCenter = input.reset()
     map.widget.zoom = 11.8
     map.widget.center = (64.11,-21.90)
+
+@reactive.calc
+def scores():
+    x, y = stop.get()
+    score = initBackend.get_station_score(station_coord=(y, x), w_density=input.w_density(), w_income=input.w_income(), w_age=input. w_age(), radius=input.rad())
+    return score
