@@ -1,5 +1,6 @@
 from typing import List, Dict, Tuple
 from shapely.geometry import Point, shape
+from shapely.validation import make_valid
 from shapely import Polygon
 from data_processing.get_smallAreaInfo import get_smallAreas
 
@@ -31,6 +32,14 @@ def get_station_coverage(
         # Convert the list of tuples to a proper Polygon structure
         coordinates = area["geometry"]
         geometry = Polygon(coordinates)
+
+        # Validate and fix invalid geometries
+        if not geometry.is_valid:
+            print(f"Invalid geometry detected for Area ID: {area['id']}. Attempting to fix.")
+            geometry = make_valid(geometry)
+
+        # Simplify geometry to avoid potential issues with highly complex polygons
+        geometry = geometry.simplify(tolerance=0.01, preserve_topology=True)
 
         # Check intersection with the station buffer
         if geometry.intersects(station_buffer):
