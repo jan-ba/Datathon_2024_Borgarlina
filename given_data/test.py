@@ -53,4 +53,3 @@ for _, row in filtered_smallarea.iterrows():
 
 ax.set_title("Filtered Small Areas with IDs Written Inside")
 plt.show()
-
