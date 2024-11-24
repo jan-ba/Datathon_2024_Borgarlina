@@ -111,7 +111,7 @@ with ui.layout_columns(col_widths=[8, 4]):
                 station_coord = (y,x)
 
                 # Fetch age bracket data from the Data_provider instance
-                age_data = initBackend.get_station_score(station_coord)['age_data']  # Assume this returns a dictionary or DataFrame
+                age_data = initBackend.get_station_score(station_coord, radius=input.rad())['age_data']  # Assume this returns a dictionary or DataFrame
                     
                 # Example structure: {'0-4 ára': 120, '5-9 ára': 140, ...}
                 age_brackets = list(age_data.keys())

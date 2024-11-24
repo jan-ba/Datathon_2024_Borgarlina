@@ -38,13 +38,17 @@ def get_station_coverage(
             intersection = geometry.intersection(station_buffer)
             intersection_area = intersection.area
 
-            # Calculate the percentage of the buffer covered by this area
+            # Calculate the percentage of the radius covered by this area
             coverage_percentage = (intersection_area / buffer_area) * 100
+
+            # Calculate the percentage of the area covered by the radius
+            small_zone_percentage = (intersection_area / geometry.area) * 100
 
             # Add the area and coverage percentage to the result
             covered_areas.append({
                 "id": area["id"],  # Include the area's ID or relevant metadata
-                "coverage_percentage": coverage_percentage
+                "coverage_percentage": coverage_percentage,
+                "small_zone_percentage": small_zone_percentage
             })
 
     return covered_areas

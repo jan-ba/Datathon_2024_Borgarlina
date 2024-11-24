@@ -39,14 +39,24 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
     income_score = 0
     density_score = 0
     age_score = 0
-    for smsv in cov_smsv:
-        
+    aggregated_age_distribution = {}
 
+    for smsv in cov_smsv:
         smsv_info = df_features[df_features["smallAreaId"] == smsv["id"]]
 
+        # Get age distribution for the year 2024
         age_dist = smsv_info["age_distribution"].iloc[0].get(2024, {})  # only interested in 2024 for current score
-        # print(data_2024)
-        age_score = get_age_score(age_dist) * w_age
+        
+        # Aggregate proportional age distribution
+        for age_group, population in age_dist.items():
+            proportion = population * (smsv["small_zone_percentage"]/100)
+            if age_group in aggregated_age_distribution:
+                aggregated_age_distribution[age_group] += proportion
+            else:
+                aggregated_age_distribution[age_group] = proportion
+
+        
+
 
         income_dist = smsv_info["income_distribution_per_year"].iloc[0].get(2024, {})  # only interested in 2024 for current score
         # print(data_2024)
@@ -54,9 +64,13 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
 
         density_score = smsv_info["density"].iloc[0] * w_density
         total_score += (age_score + income_score + density_score) * smsv["coverage_percentage"] # TODO: Area of the cricle * percent covered / total area of the small area
-    return {"total_score": total_score, "income_score": income_score, "age_score": age_score, "density_score": density_score, "age_data": age_dist}
 
-def get_age_score(age_distribution):
+    # Calculate age score
+    age_score = get_age_score(aggregated_age_distribution) * w_age
+    total_score += age_score
+    return {"total_score": total_score, "income_score": income_score, "age_score": age_score, "density_score": density_score, "age_data": aggregated_age_distribution}
+
+def get_age_score(proportional_age_distribution):
     """
     Calculate a score based on age distribution.
 
@@ -94,10 +108,10 @@ def get_age_score(age_distribution):
 }
 
     # Calculate the weighted sum of the age distribution
-    weighted_sum = sum(age_distribution.get(age, 0) * weight for age, weight in age_weights.items())
+    weighted_sum = sum(proportional_age_distribution.get(age, 0) * weight for age, weight in age_weights.items())
 
     # Normalize the score by the total population
-    total_population = sum(age_distribution.values())
+    total_population = sum(proportional_age_distribution.values())
     if total_population == 0:
         return 0
 
