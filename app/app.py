@@ -8,6 +8,7 @@ from datetime import datetime
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 from pandas.core.frame import functools
 # Load data and compute static values
@@ -79,6 +80,40 @@ with ui.layout_columns(col_widths=[8, 4]):
                     def totalScore():
                         score = scores()
                         return f"{round(float(score["total_score"]), 2)}"
+                    
+                    @render.plot(alt="A pie chart of score contributions from age, income, and density.")
+                    def contribution_pie_chart():
+                        print("Generating pie chart of contributions")
+                        
+                        # Get score components
+                        score = scores()
+                        age_contribution = score["age_score"]
+                        income_contribution = score["income_score"]
+                        density_contribution = score["density_score"]
+                        
+                        # Data for the pie chart
+                        contributions = [age_contribution, income_contribution, density_contribution]
+                        labels = ["Age", "Income", "Density"]
+                        colors = ["#FD4D86", "#36DEC2", "#704CB0"]  # Custom colors for the segments
+                        
+                        # Create a Matplotlib figure
+                        fig, ax = plt.subplots(figsize=(6, 6))
+                        
+                        # Create the pie chart
+                        ax.pie(
+                            contributions, 
+                            labels=labels, 
+                            autopct='%1.1f%%', 
+                            startangle=90, 
+                            colors=colors, 
+                            textprops={'fontsize': 12}
+                        )
+                        
+                        # Add a title
+                        ax.set_title("Score Contributions", fontsize=16)
+                        
+                        # Return the figure for rendering in Shiny
+                        return fig
                 
                 with ui.nav_panel("Income"):
                     "Income Score"    
@@ -86,6 +121,37 @@ with ui.layout_columns(col_widths=[8, 4]):
                     def incomeScore():
                         score = scores()
                         return f"{round(float(score["income_score"]), 2)}"
+                    @render.plot(alt="A chart of income distribution.")
+                    def income_plot():
+                        print("Generating income distribution bar chart")
+                        
+                        # Get selected stop coordinates
+                        x, y = stop.get()
+                        station_coord = (y, x)
+                        
+                        # Fetch income distribution data from the Data_provider instance
+                        income_data = initBackend.get_station_score(station_coord, radius=input.rad())['income_data']  # Assume this returns a dictionary
+                        
+                        # Example structure: {1: 150, 2: 200, 3: 180, ...}
+                        income_brackets = list(income_data.keys())
+                        populations = list(income_data.values())
+                        
+                        # Create a Matplotlib figure
+                        fig, ax = plt.subplots(figsize=(8, 4))
+                        
+                        # Create the bar chart
+                        ax.bar(income_brackets, populations, color='#36DEC2')
+                        
+                        # Customize the plot
+                        ax.set_title("Population by Income Bracket")
+                        ax.set_xlabel("Income Bracket")
+                        ax.set_ylabel("Population")
+                        ax.set_xticks(income_brackets)
+                        ax.set_xticklabels(income_brackets, rotation=45, ha="right")
+                        
+                        # Return the figure for rendering in Shiny
+                        return fig
+
                 
                 with ui.nav_panel("Age"):
                     "Age Score" 
@@ -94,6 +160,37 @@ with ui.layout_columns(col_widths=[8, 4]):
                         score = scores()
                         return f"{round(float(score["age_score"]), 2)}"
                     
+                    @render.plot(alt="A bar chart of age distribution.")
+                    def age_plot():
+                        print("Generating age distribution bar chart")
+                        
+                        # Get selected stop coordinates
+                        x, y = stop.get()
+                        station_coord = (y, x)
+                        
+                        # Fetch age distribution data from the Data_provider instance
+                        age_data = initBackend.get_station_score(station_coord, radius=input.rad())['age_data']  # Assume this returns a dictionary
+                        
+                        # Example structure: {'0-4 ára': 120, '5-9 ára': 140, ...}
+                        age_brackets = list(age_data.keys())
+                        populations = list(age_data.values())
+                        
+                        # Create a Matplotlib figure
+                        fig, ax = plt.subplots(figsize=(8, 4))
+                        
+                        # Create the bar chart with custom colors
+                        ax.bar(age_brackets, populations, color='#FD4D86')
+                        
+                        # Customize the plot
+                        ax.set_title("Population by Age Bracket", fontsize=14)
+                        ax.set_xlabel("Age Bracket", fontsize=12)
+                        ax.set_ylabel("Population", fontsize=12)
+                        ax.set_xticks(range(len(age_brackets)))
+                        ax.set_xticklabels(age_brackets, rotation=45, ha="right", fontsize=10)
+                        
+                        # Return the figure for rendering in Shiny
+                        return fig
+                    
                 with ui.nav_panel("Density"):
                     "Density" 
                     @render.text
@@ -101,44 +198,50 @@ with ui.layout_columns(col_widths=[8, 4]):
                         score = scores()
                         return f"{round(float(score["density_score"] * 1000000), 2)} Person / Kilometer"
                 
+                
+                        return f"{round(float(score["density_score"]), 2)}"
+                    @render.plot(alt="A bar chart of density scores for all areas within the radius.")
+                    def density_plot():
+                        print("Generating density score bar chart")
+                        
+                        # Get selected stop coordinates
+                        x, y = stop.get()
+                        station_coord = (y, x)
+                        
+                        # Fetch small area contributions from the Data_provider instance
+                        small_area_contributions = initBackend.get_station_score(
+                            station_coord, 
+                            radius=input.rad(),
+                            w_density=input.w_density(), 
+                            w_income=input.w_income(), 
+                            w_age=input.w_age()
+                        )['small_area_contributions']
+                        
+                        # Extract density scores for each small area
+                        area_ids = [area_id for area_id in small_area_contributions.keys()]
+                        density_scores = [area_data['density_score'] for area_data in small_area_contributions.values()]
+                        
+                        # Create a Matplotlib figure
+                        fig, ax = plt.subplots(figsize=(8, 4))
+                        
+                        # Create the bar chart
+                        ax.bar(area_ids, density_scores, color='#704CB0')
+                        
+                        # Customize the plot
+                        ax.set_title("Density Scores of Small Areas", fontsize=14)
+                        ax.set_xlabel("Small Area ID", fontsize=12)
+                        ax.set_ylabel("Density Score", fontsize=12)
+                        ax.set_xticks(range(len(area_ids)))
+                        ax.set_xticklabels(area_ids, rotation=45, ha="right", fontsize=10)
+                        
+                        # Return the figure for rendering in Shiny
+                        return fig
+                    
                 with ui.nav_panel("The Line"):
-                    "The Total Score For Lines" 
-                    @render.text
-                    def line():
-                        return lineScore()
-                    
-                    
-            @render.plot(alt="A b   ar chart of income distribution.")
-            def income_plot():
-                print("Generating income distribution bar chart")
-                
-                # Get selected stop coordinates
-                x, y = stop.get()
-                station_coord = (y, x)
-                
-                # Fetch income distribution data from the Data_provider instance
-                income_data = initBackend.get_station_score(station_coord, radius=input.rad())['income_data']  # Assume this returns a dictionary
-                
-                # Example structure: {1: 150, 2: 200, 3: 180, ...}
-                income_brackets = list(income_data.keys())
-                populations = list(income_data.values())
-                
-                # Create a Matplotlib figure
-                fig, ax = plt.subplots(figsize=(8, 4))
-                
-                # Create the bar chart
-                ax.bar(income_brackets, populations, color='lightcoral')
-                
-                # Customize the plot
-                ax.set_title("Population by Income Bracket")
-                ax.set_xlabel("Income Bracket")
-                ax.set_ylabel("Population")
-                ax.set_xticks(income_brackets)
-                ax.set_xticklabels(income_brackets, rotation=45, ha="right")
-                
-                # Return the figure for rendering in Shiny
-                return fig
-
+                        "The Total Score For Lines" 
+                        @render.text
+                        def line():
+                            return lineScore()
 
                         
 
