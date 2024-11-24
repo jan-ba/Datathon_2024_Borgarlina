@@ -4,6 +4,8 @@ from ipyleaflet import Map, Marker, LayerGroup, Circle, Icon, AwesomeIcon, DivIc
 
 import geopandas as gpd
 from datetime import datetime
+
+from pandas.core.frame import functools
 # Load data and compute static values
 from borgarlina3_leaflet import create_map, load_and_preprocess_data
 from shared import app_dir, tips
@@ -33,8 +35,7 @@ ui.page_opts(title="Borgarlínan", fillable=True)
 
 with ui.sidebar(open="open"):
 
-    ui.input_select("year", "Year:", 
-                    {2025: "2025", 2029: "2029", 2030: "2030"})
+    ui.input_select("year", "Year:", {2025: "2025", 2029: "2029", 2030: "2030"})
     ui.input_text("inputParam", "Param", "")
     
     ui.input_checkbox_group(
@@ -62,6 +63,10 @@ with ui.layout_columns(col_widths=[8, 4]):
     with ui.layout_column_wrap(width="250px"):
         with ui.card(full_screen=False):
             ui.card_header("Stop Data")
+            @render.text
+            def value():
+                return f"Selected bus stop: {stop.get()}"
+
         
 ui.include_css(app_dir / "styles.css")
 
@@ -95,7 +100,9 @@ def _():
         marker = Marker(location=i,
                         icon=icon,
                         icon_anchor=(10,10),
-                        icon_size=(0,0))
+                        icon_size=(0,0),
+                        draggable=False)
+        marker.on_click(functools.partial(create_marker_callback, id=f"SET_ID_HERE {i}"))
         markers.append(marker)
     
     layerGroup = LayerGroup(layers=markers, name="stops")
@@ -103,4 +110,10 @@ def _():
     map.widget.add(layerGroup)
     map.widget.add(layerGroup2)
     
-    
+stop = reactive.value("Init")
+
+def create_marker_callback(id, **kwargs):
+    # We can also get coordinates of the marker here
+    print(kwargs)
+    stop.set(id)
+
