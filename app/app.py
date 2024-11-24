@@ -76,11 +76,30 @@ with ui.layout_columns(col_widths=[8, 4]):
         with ui.card(full_screen=False):
             ui.card_header("Stop Data")
             @render.text
-            def value():
+            def totalScore():
                 x, y = stop.get()
-                print((y, x))
                 score = initBackend.get_station_score((y, x), radius=input.rad())
-                return f"Score: {score}"
+                return f"Total Score: {round(float(score["total_score"]), 2)}"
+            
+            @render.text
+            def incomeScore():
+                x, y = stop.get()
+                score = initBackend.get_station_score((y, x), radius=input.rad())
+                return f"Income Score: {round(float(score["income_score"]), 2)}"
+            
+            @render.text
+            def ageScore():
+                x, y = stop.get()
+                score = initBackend.get_station_score((y, x), radius=input.rad())
+                print(score)
+                return f"Age Score: {round(float(score["age_score"]), 2)}"
+            
+            @render.text
+            def sensityScoer():
+                x, y = stop.get()
+                score = initBackend.get_station_score((y, x), radius=input.rad())
+                return f"Density Score: {round(float(score["density_score"]), 6)}"
+            
             @render.plot(alt="A bar chart of age bracket data.")
             def plot():
                 print("Generating age bracket bar chart")
