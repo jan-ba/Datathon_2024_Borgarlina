@@ -343,4 +343,8 @@ def lineScore():
         score = initBackend.line_score(val, w_density=input.w_density(), w_income=input.w_income(), w_age=input. w_age(), radius=input.rad())
         
         lines.append((key, score["final_score"]))
-    return lines
+    
+    # Format the output
+    formatted_output = "\n".join(f"{key}: {float(value):.3f}" for key, value in lines)
+    print(formatted_output)
+    return formatted_output
