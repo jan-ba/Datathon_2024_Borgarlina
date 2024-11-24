@@ -6,13 +6,11 @@ import os
 import pandas as pd
 
 
-# csv_output = os.path.join('output.csv')
 smsv_list = get_smallAreas()
 df = get_feature_df()
 
 
 station_coords = (356250.0, 408250.0)  # EPSG:3057 coordinates
-cov_smsv = []
 w_density = 1
 w_income = 1
 w_age = 1
@@ -20,7 +18,7 @@ radius = 400
 
 if __name__ == '__main__':
 
-    cov = get_station_coverage(smsv_list, station_coords, 400)
+    cov = get_station_coverage(smsv_list, station_coords, radius)
     # print(cov)
     final_score = score_current(station_coords, df, cov, w_density, w_income, w_age)
 
