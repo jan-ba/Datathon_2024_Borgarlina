@@ -23,11 +23,14 @@ def generateStops(year):
     gpdStops, _, _ = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
 
     points = []
-
+    stopData = {}
     # Assuming your GeoDataFrame is named 'gdf'
     for _, row in gpdStops.iterrows():
         point = row["geometry"]
-        points.append((point.y, point.x))
+        color = row["line"]
+        if color not in ["red", "yellow", "blue", "green", "purple", "orange"]:
+            color = color.split("/")
+        points.append(((point.y, point.x), color))
     return points
 
 # Add page title and sidebar
@@ -37,6 +40,7 @@ with ui.sidebar(open="open"):
 
     ui.input_select("year", "Year:", {2025: "2025", 2029: "2029", 2030: "2030"})
     ui.input_text("inputParam", "Param", "")
+    ui.input_slider("rad", "Stop reach radius:", min=200, max=1000, value=400),
     
     ui.input_checkbox_group(
         "time",
@@ -78,6 +82,7 @@ ui.include_css(app_dir / "styles.css")
 def _():
     year = input.year()
     stops = generateStops(year)
+    rad = input.rad()
     markers = []
     circles = []
     
@@ -85,24 +90,34 @@ def _():
         if layer.name == "stops" or layer.name == "radius":
             map.widget.remove_layer(layer)
 
-    for i in stops:
-        circle = Circle()
-        circle.location = i
-        circle.radius = 400
-        circle.color = "green"
-        circle.fill_color = "green"
-        circles.append(circle)
+    for stop, color in stops:
+        if type(color) == list:
+            smallerRad = 0
+            for c in color:
+                circle = Circle()
+                circle.location = stop
+                circle.radius = rad - smallerRad
+                circle.color = c
+                circles.append(circle)
+                smallerRad =+ 50
+        else:
+            circle = Circle()
+            circle.location = stop
+            circle.radius = rad
+            circle.color = color
+            circle.fill_color = color
+            circles.append(circle)
 
         icon = AwesomeIcon(name="bus", marker_color="black", icon_color="white")
         icon1 = DivIcon(html = '<div style="border-radius:50%;background-color: black; width: 10px; height: 10px;"></div>')
         icon2 = Icon(icon_url="marker.png")
 
-        marker = Marker(location=i,
+        marker = Marker(location=stop,
                         icon=icon,
                         icon_anchor=(10,10),
                         icon_size=(0,0),
                         draggable=False)
-        marker.on_click(functools.partial(create_marker_callback, id=f"SET_ID_HERE {i}"))
+        marker.on_click(functools.partial(create_marker_callback, id=f"SET_ID_HERE {stop}"))
         markers.append(marker)
     
     layerGroup = LayerGroup(layers=markers, name="stops")
@@ -114,6 +129,6 @@ stop = reactive.value("Init")
 
 def create_marker_callback(id, **kwargs):
     # We can also get coordinates of the marker here
-    print(kwargs)
+    map.widget.zoom = 15
+    map.widget.center = kwargs["coordinates"]
     stop.set(id)
-
