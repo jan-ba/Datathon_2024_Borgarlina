@@ -40,6 +40,7 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
     density_score = 0
     age_score = 0
     aggregated_age_distribution = {}
+    aggregated_income_distribution = {}
 
     for smsv in cov_smsv:
         smsv_info = df_features[df_features["smallAreaId"] == smsv["id"]]
@@ -55,20 +56,38 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
             else:
                 aggregated_age_distribution[age_group] = proportion
 
-        
-
-
+        # Get income distribution for the year 2024
         income_dist = smsv_info["income_distribution_per_year"].iloc[0].get(2024, {})  # only interested in 2024 for current score
-        # print(data_2024)
-        income_score = get_income_score(income_dist) * w_income
 
+        # Aggregate proportional income distribution
+        for income_group, population in income_dist.items():
+            proportion = population * (smsv["small_zone_percentage"] / 100)
+            if income_group in aggregated_income_distribution:
+                aggregated_income_distribution[income_group] += proportion
+            else:
+                aggregated_income_distribution[income_group] = proportion
+
+        # Calculate density scores
         density_score = smsv_info["density"].iloc[0] * w_density
-        total_score += (age_score + income_score + density_score) * smsv["coverage_percentage"] # TODO: Area of the cricle * percent covered / total area of the small area
+        
+        # Add to total score
+        total_score += (density_score) * smsv["coverage_percentage"] # TODO: Area of the cricle * percent covered / total area of the small area
 
     # Calculate age score
     age_score = get_age_score(aggregated_age_distribution) * w_age
     total_score += age_score
-    return {"total_score": total_score, "income_score": income_score, "age_score": age_score, "density_score": density_score, "age_data": aggregated_age_distribution}
+
+    # Calculate income score
+    income_score = get_income_score(aggregated_income_distribution) * w_income
+    total_score += income_score
+
+    return {"total_score": total_score, 
+            "income_score": income_score, 
+            "age_score": age_score, 
+            "density_score": density_score, 
+            "age_data": aggregated_age_distribution, 
+            "income_data": aggregated_income_distribution
+    }
 
 def get_age_score(proportional_age_distribution):
     """
@@ -118,7 +137,7 @@ def get_age_score(proportional_age_distribution):
     return weighted_sum / total_population
 
 
-def get_income_score(income_distribution):
+def get_income_score(proportional_income_distribution):
     """
     Calculate a score based on income distribution.
 
@@ -147,16 +166,11 @@ def get_income_score(income_distribution):
     }
 
     # Calculate the weighted sum of the income distribution
-    weighted_sum = sum(income_distribution.get(income_class, 0) * weight for income_class, weight in income_weights.items())
+    weighted_sum = sum(proportional_income_distribution.get(income_class, 0) * weight for income_class, weight in income_weights.items())
 
     # Normalize the score by the total population
-    total_population = sum(income_distribution.values())
+    total_population = sum(proportional_income_distribution.values())
     if total_population == 0:
         return 0
 
     return weighted_sum / total_population
-
-
-if __name__ == '__main__':
-    filename = os.path.join('output.csv')
-    data = open_file(filename)
