@@ -1,13 +1,13 @@
-from get_smallAreaInfo import get_smallAreas
-from point_scoring import score_current
-from get_station_coverage import get_station_coverage
-from aggregate_data import get_feature_df
+from data_processing.get_smallAreaInfo import get_smallAreas
+from data_processing.point_scoring import score_current
+from data_processing.get_station_coverage import get_station_coverage
+from data_processing.aggregate_data import get_feature_df
 import os
 import pandas as pd
 from pyproj import Transformer
 
 
-class data_provider():
+class Data_provider():
 
     def __init__(self):
         self.smsv_list = get_smallAreas()

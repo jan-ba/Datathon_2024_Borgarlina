@@ -1,8 +1,8 @@
 import csv
-from age_distribution_by_id import get_age_distribution
-from get_smallAreaInfo import get_smallAreas
-from get_density import get_density
-from income_decile_by_id import get_income_decile
+from data_processing.age_distribution_by_id import get_age_distribution
+from data_processing.get_smallAreaInfo import get_smallAreas
+from data_processing.get_density import get_density
+from data_processing.income_decile_by_id import get_income_decile
 import os
 import pandas as pd
 import geopandas as gpd

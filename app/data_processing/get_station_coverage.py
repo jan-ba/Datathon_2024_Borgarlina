@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple
 from shapely.geometry import Point, shape
 from shapely import Polygon
-from get_smallAreaInfo import get_smallAreas
+from data_processing.get_smallAreaInfo import get_smallAreas
 
 
 def get_station_coverage(

@@ -1,5 +1,6 @@
 import faicons as fa
-
+import sys
+import os
 from ipyleaflet import Map, Marker, LayerGroup, Circle, Icon, AwesomeIcon, DivIcon, basemaps
 
 import geopandas as gpd
@@ -16,13 +17,20 @@ from shinywidgets import render_widget
 from shiny import reactive, render
 from shiny.express import input, ui
 
-from data_processing.data_provider import data_provider
+# Import from backend
+from data_processing.data_provider import Data_provider
+
+data = Data_provider()
+print(data)
+
+def getScore(cords):
+    pass
 
 def generateStops(year):
-    geojson_file = f"../given_data/cityline_geojson/cityline_{year}.geojson"
-    pop_file = "../given_data/ibuafjoldi.csv"
-    smallarea_file = "../given_data/smasvaedi_2021.json"
-    dwellings_file = "../given_data/ibudir.csv"
+    geojson_file = f"given_data/cityline_geojson/cityline_{year}.geojson"
+    pop_file = "given_data/ibuafjoldi.csv"
+    smallarea_file = "given_data/smasvaedi_2021.json"
+    dwellings_file = "given_data/ibudir.csv"
 
     gpdStops, _, _ = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
 
@@ -141,7 +149,6 @@ stop = reactive.value("Init")
 def create_marker_callback(id, **kwargs):
     # We can also get coordinates of the marker here
     rad = input.rad()
-    print(rad)
     zoom = 15.0
     if rad > 500:
         zoom = 14.8
