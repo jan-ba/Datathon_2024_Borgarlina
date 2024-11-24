@@ -1,3 +1,6 @@
+from typing import List, Tuple
+
+from traitlets import Float
 from data_processing.get_smallAreaInfo import get_smallAreas
 from data_processing.point_scoring import score_current
 from data_processing.get_station_coverage import get_station_coverage
@@ -14,6 +17,8 @@ class Data_provider():
         self.df = get_feature_df()
         self.transformer_to_3057 = Transformer.from_crs("EPSG:4326", "EPSG:3057", always_xy=True)
         self.transformer_to_4326 = Transformer.from_crs("EPSG:3057", "EPSG:4326", always_xy=True)
+
+    
 
     def get_station_score(self, station_coord, w_density=1, w_income=1, w_age=1, radius=400, EPSG_4326=True):
         """
@@ -78,6 +83,10 @@ class Data_provider():
         """
         return self.transformer_to_4326.transform(*station_coord)
 
+    def total_score(self, stations_coordinates: List[Tuple[Float]], w_density=1, w_income=1, w_age=1, radius=400, EPSG_4326=True):
+        scores = []
+        for coord in stations_coordinates:
+            score = self.get_station_scores(coord) - get_penalty()
 
 
 
@@ -86,7 +95,7 @@ if __name__ == '__main__':
     dummy_coord2 = (-21.910388, 64.144947)  # EPSG:4326 coordinates
     dummy_coord3 = (358374.26032876654, 407938.72289760906) # ISN93/Lambert
     # dummy_coord3 = 
-    backend = data_provider()
+    backend = Data_provider()
     print("dummy_coord1: ", backend.get_station_score(dummy_coord1, EPSG_4326=False))
     print("dummy_coord2: ", backend.get_station_score(dummy_coord2))
     print("dummy_coord3: ", backend.get_station_score(dummy_coord3, EPSG_4326=False))
