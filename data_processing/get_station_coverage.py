@@ -55,7 +55,7 @@ if __name__ == '__main__':
     radius_meters = 400  # 400 meters
 
     # Get small areas
-    covered_areas = get_station_coverage(get_smallAreas("given_data/smasvaedi_2021.json"), station_coords, radius_meters)
+    covered_areas = get_station_coverage(get_smallAreas(), station_coords, radius_meters)
 
     # Print results
     for area in covered_areas:

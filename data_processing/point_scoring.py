@@ -33,6 +33,8 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
     # 1. Get small area ids in range
     # 2. 
     # Score = [for all areas in range((density) * coverage percentage)]
+
+    # TODO: take into account fjoldi starfandi, if there are more people who work than live => many people need to get there, also works the other way around.
     final_score = 0
     for smsv in cov_smsv:
         
@@ -48,7 +50,7 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
         income_score = get_income_score(income_dist) * w_income
 
         density_score = smsv_info["density"].iloc[0] * w_density
-        final_score += (age_score + income_score + density_score) * smsv["coverage_percentage"]
+        final_score += (age_score + income_score + density_score) * smsv["coverage_percentage"] # TODO: Area of the cricle * percent covered / total area of the small area
     return final_score
 
 def get_age_score(age_distribution):
