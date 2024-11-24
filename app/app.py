@@ -5,6 +5,8 @@ from ipyleaflet import Map, Marker, LayerGroup, Circle, Icon, AwesomeIcon, DivIc
 import geopandas as gpd
 from datetime import datetime
 
+import seaborn as sns
+
 from pandas.core.frame import functools
 # Load data and compute static values
 from borgarlina3_leaflet import create_map, load_and_preprocess_data
@@ -13,6 +15,8 @@ from shinywidgets import render_widget
 
 from shiny import reactive, render
 from shiny.express import input, ui
+
+from data_processing.data_provider import data_provider
 
 def generateStops(year):
     geojson_file = f"../given_data/cityline_geojson/cityline_{year}.geojson"
@@ -68,6 +72,14 @@ with ui.layout_columns(col_widths=[8, 4]):
             @render.text
             def value():
                 return f"Selected bus stop: {stop.get()}"
+            @render.plot(alt="A Seaborn histogram on penguin body mass in grams.")  
+            def plot():  
+                ax = sns.histplot(data=[1,2,3,4,5,6,7,8,9], x="body_mass_g", bins=input.n())  
+                ax.set_title("Palmer Penguins")
+                ax.set_xlabel("Mass (g)")
+                ax.set_ylabel("Count")
+                return ax  
+                        
 
         
 ui.include_css(app_dir / "styles.css")
