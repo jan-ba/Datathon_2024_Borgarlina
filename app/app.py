@@ -7,6 +7,7 @@ import geopandas as gpd
 from datetime import datetime
 
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 from pandas.core.frame import functools
 # Load data and compute static values
@@ -19,10 +20,7 @@ from shiny.express import input, ui
 
 # Import from backend
 from data_processing.data_provider import Data_provider
-
-data = Data_provider()
-print(data)
-
+initBackend = Data_provider()
 def getScore(cords):
     pass
 
@@ -79,14 +77,43 @@ with ui.layout_columns(col_widths=[8, 4]):
             ui.card_header("Stop Data")
             @render.text
             def value():
-                return f"Selected bus stop: {stop.get()}"
-            @render.plot(alt="A Seaborn histogram on penguin body mass in grams.")  
-            def plot():  
-                ax = sns.histplot(data=[1,2,3,4,5,6,7,8,9], x="body_mass_g", bins=input.n())  
-                ax.set_title("Palmer Penguins")
-                ax.set_xlabel("Mass (g)")
-                ax.set_ylabel("Count")
-                return ax  
+                x, y = stop.get()
+                print((y, x))
+                score = initBackend.get_station_score((y, x), radius=input.rad())
+                return f"Score: {score}"
+            @render.plot(alt="A bar chart of age bracket data.")
+            def plot():
+                print("Generating age bracket bar chart")
+                
+                # Dummy coords
+                # station_coord = (-21.910388, 64.144947)
+                
+                x,y = stop.get()
+                station_coord = (y,x)
+
+                # Fetch age bracket data from the Data_provider instance
+                age_data = initBackend.get_station_score(station_coord)['age_data']  # Assume this returns a dictionary or DataFrame
+                    
+                # Example structure: {'0-4 ára': 120, '5-9 ára': 140, ...}
+                age_brackets = list(age_data.keys())
+                populations = list(age_data.values())
+                
+                # Create a Matplotlib figure
+                fig, ax = plt.subplots(figsize=(8, 4))
+                
+                # Create the bar chart
+                ax.bar(age_brackets, populations, color='skyblue')
+                
+                # Customize the plot
+                ax.set_title("Population by Age Bracket")
+                ax.set_xlabel("Age Bracket")
+                ax.set_ylabel("Population")
+                ax.set_xticks(range(len(age_brackets)))
+                ax.set_xticklabels(age_brackets, rotation=45, ha="right")
+                
+                # Return the figure for rendering in Shiny
+                return fig
+
                         
 
         
@@ -98,6 +125,7 @@ ui.include_css(app_dir / "styles.css")
 
 @reactive.effect
 def _():
+    
     year = input.year()
     stops = generateStops(year)
     rad = input.rad()
@@ -129,13 +157,12 @@ def _():
         icon = AwesomeIcon(name="bus", marker_color="black", icon_color="white")
         icon1 = DivIcon(html = '<div style="border-radius:50%;background-color: black; width: 10px; height: 10px;"></div>')
         icon2 = Icon(icon_url="marker.png")
-
         marker = Marker(location=stop,
                         icon=icon,
                         icon_anchor=(10,10),
                         icon_size=(0,0),
                         draggable=False)
-        marker.on_click(functools.partial(create_marker_callback, id=f"SET_ID_HERE {stop}"))
+        marker.on_click(functools.partial(create_marker_callback, id=stop))
         markers.append(marker)
     
     layerGroup = LayerGroup(layers=markers, name="stops")
@@ -144,7 +171,7 @@ def _():
     map.widget.add(layerGroup2)
     
     
-stop = reactive.value("Init")
+stop = reactive.value()
 
 def create_marker_callback(id, **kwargs):
     # We can also get coordinates of the marker here

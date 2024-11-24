@@ -54,7 +54,7 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
 
         density_score = smsv_info["density"].iloc[0] * w_density
         total_score += (age_score + income_score + density_score) * smsv["coverage_percentage"] # TODO: Area of the cricle * percent covered / total area of the small area
-    return {"total_score": total_score, "income_score": income_score, "age_score": age_score, "density_score": density_score}
+    return {"total_score": total_score, "income_score": income_score, "age_score": age_score, "density_score": density_score, "age_data": age_dist}
 
 def get_age_score(age_distribution):
     """
