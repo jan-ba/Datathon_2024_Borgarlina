@@ -84,6 +84,25 @@ class Data_provider():
         return self.transformer_to_4326.transform(*station_coord)
 
     def line_score(self, stations_coordinates: List[Tuple[Float]], w_density=1, w_income=1, w_age=1, radius=400, EPSG_4326=True):
+        """
+        Calculate the total score for a transit line based on station locations and individual station scores.
+
+        Parameters:
+            stations_coordinates (List[Tuple[float]]): A list of station coordinates as (x, y) tuples.
+            w_density (float): Weight for population density in scoring (default is 1).
+            w_income (float): Weight for income level in scoring (default is 1).
+            w_age (float): Weight for age distribution in scoring (default is 1).
+            radius (float): Radius of influence for each station (default is 400 meters).
+            EPSG_4326 (bool): If True, the coordinates are in EPSG:4326 and will be converted to EPSG:3057 (default is True).
+
+        Returns:
+            dict: A dictionary containing:
+                - "individual_scores": Scores for each station before applying penalties.
+                - "adjusted_scores": Scores for each station after applying penalties for proximity.
+                - "overlap_factors": (Optional, if calc_score_line returns it) Degree of overlap between stations.
+                - "total_individual_score": The aggregated score of all stations before penalties.
+                - "final_score": The total line score after penalties.
+        """
         coords_formatted = []
         coords_scores = []
         for coord in stations_coordinates:
