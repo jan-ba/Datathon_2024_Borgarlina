@@ -49,7 +49,11 @@ ui.page_opts(title="Borgarlínan", fillable=True)
 with ui.sidebar(open="open"):
 
     ui.input_select("year", "Year:", {2025: "2025", 2029: "2029", 2030: "2030"})
-    ui.input_text("inputParam", "Param", "")
+
+    # station_coord, w_density=1, w_income=1, w_age=1):
+    ui.input_numeric("w_density", "Density Weight", "1")
+    ui.input_numeric("w_income", "Income Weight", "1")
+    ui.input_numeric("w_age", "Age Weight", "1")
     ui.input_slider("rad", "Stop reach radius:", min=200, max=1000, value=400),
     
     ui.input_checkbox_group(
@@ -91,14 +95,13 @@ with ui.layout_columns(col_widths=[8, 4]):
             def ageScore():
                 x, y = stop.get()
                 score = initBackend.get_station_score((y, x), radius=input.rad())
-                print(score)
                 return f"Age Score: {round(float(score["age_score"]), 2)}"
             
             @render.text
             def sensityScoer():
                 x, y = stop.get()
                 score = initBackend.get_station_score((y, x), radius=input.rad())
-                return f"Density Score: {round(float(score["density_score"]), 6)}"
+                return f"Density: {round(float(score["density_score"] * 1000000), 2)} Person / Kilometer"
             
             @render.plot(alt="A bar chart of age bracket data.")
             def plot():
