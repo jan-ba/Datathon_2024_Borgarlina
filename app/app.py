@@ -1,6 +1,6 @@
 import faicons as fa
 
-from ipyleaflet import Map, Marker, LayerGroup
+from ipyleaflet import Map, Marker, LayerGroup, Circle, Icon, AwesomeIcon, DivIcon, basemaps
 
 import geopandas as gpd
 from datetime import datetime
@@ -66,7 +66,10 @@ with ui.layout_columns(col_widths=[8, 4]):
         
         @render_widget  
         def map():
-            return Map(center=(64.11,-21.90), zoom=11.5)  
+            return Map(
+                basemap=basemaps.CartoDB.Positron,
+                center=(64.11,-21.90), 
+                zoom=11.5)  
 
     '''with ui.layout_column_wrap(width="250px"):
         with ui.card(full_screen=False):
@@ -120,16 +123,33 @@ def _():
     year = input.year()
     stops = generateStops(year)
     markers = []
+    circles = []
     
     for layer in map.widget.layers:
-        if layer.name 
+        if layer.name == "stops" or layer.name == "radius":
+            map.widget.remove_layer(layer)
 
-    map.widget.remove_layer(existingLayers[])
     for i in stops:
-        marker = Marker(location=i)
+        circle = Circle()
+        circle.location = i
+        circle.radius = 400
+        circle.color = "green"
+        circle.fill_color = "green"
+        circles.append(circle)
+
+        icon = AwesomeIcon(name="bus", marker_color="black", icon_color="white")
+        icon1 = DivIcon(html = '<div style="border-radius:50%;background-color: black; width: 10px; height: 10px;"></div>')
+        icon2 = Icon(icon_url="marker.png")
+
+        marker = Marker(location=i,
+                        icon=icon,
+                        icon_anchor=(10,10),
+                        icon_size=(0,0))
         markers.append(marker)
     
-    layerGroup = LayerGroup(layers=markers, name=stops)
+    layerGroup = LayerGroup(layers=markers, name="stops")
+    layerGroup2 = LayerGroup(layers=circles, name="radius")
     map.widget.add(layerGroup)
+    map.widget.add(layerGroup2)
     
     
