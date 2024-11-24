@@ -50,7 +50,7 @@ with ui.sidebar(open="open"):
         inline=True,
     )
 
-    ui.input_action_button("reset", "Reset filter")
+    ui.input_action_button("reset", "Reset zoom")
 
 with ui.layout_columns(col_widths=[8, 4]):
     with ui.card(full_screen=True):
@@ -60,9 +60,7 @@ with ui.layout_columns(col_widths=[8, 4]):
         @render_widget  
         def map():
             return Map(
-                basemap=basemaps.CartoDB.Positron,
-                center=(64.11,-21.90), 
-                zoom=11.5)  
+                basemap=basemaps.CartoDB.Positron)  
 
     with ui.layout_column_wrap(width="250px"):
         with ui.card(full_screen=False):
@@ -125,10 +123,22 @@ def _():
     map.widget.add(layerGroup)
     map.widget.add(layerGroup2)
     
+    
 stop = reactive.value("Init")
 
 def create_marker_callback(id, **kwargs):
     # We can also get coordinates of the marker here
-    map.widget.zoom = 15
+    rad = input.rad()
+    print(rad)
+    zoom = 15.0
+    if rad > 500:
+        zoom = 14.8
+    map.widget.zoom = zoom
     map.widget.center = kwargs["coordinates"]
     stop.set(id)
+
+@reactive.effect
+def centerMap():
+    mapCenter = input.reset()
+    map.widget.zoom = 11.8
+    map.widget.center = (64.11,-21.90)
