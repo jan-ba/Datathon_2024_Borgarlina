@@ -3,6 +3,7 @@ import os
 from typing import List, Tuple
 import math
 
+from shapely.validation import make_valid
 
 def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_age) -> float:
     """
@@ -38,25 +39,86 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
 
     # TODO: take into account fjoldi starfandi, if there are more people who work than live => many people need to get there, also works the other way around.
     total_score = 0
-    income_score = 0
-    density_score = 0
-    age_score = 0
-    for smsv in cov_smsv:
-        
+    total_income_score = 0
+    total_density_score = 0
+    total_age_score = 0
+    aggregated_age_distribution = {}
+    aggregated_income_distribution = {}
+    small_area_contributions = {}
 
+    for smsv in cov_smsv:
         smsv_info = df_features[df_features["smallAreaId"] == smsv["id"]]
 
+        # Get geometry of the small area
+        geometry = smsv_info["geometry"].iloc[0]
+
+        # Get age distribution for the year 2024
         age_dist = smsv_info["age_distribution"].iloc[0].get(2024, {})  # only interested in 2024 for current score
-        # print(data_2024)
-        age_score = get_age_score(age_dist) * w_age
+        
+        # Aggregate proportional age distribution
+        for age_group, population in age_dist.items():
+            proportion = population * (smsv["small_zone_percentage"]/100)
+            if age_group in aggregated_age_distribution:
+                aggregated_age_distribution[age_group] += proportion
+            else:
+                aggregated_age_distribution[age_group] = proportion
 
+        # Get income distribution for the year 2024
         income_dist = smsv_info["income_distribution_per_year"].iloc[0].get(2024, {})  # only interested in 2024 for current score
-        # print(data_2024)
-        income_score = get_income_score(income_dist) * w_income
 
-        density_score = smsv_info["density"].iloc[0] * w_density
-        total_score += (age_score + income_score + density_score) * smsv["coverage_percentage"] # TODO: Area of the cricle * percent covered / total area of the small area
-    return {"total_score": total_score, "income_score": income_score, "age_score": age_score, "density_score": density_score, "age_data": age_dist}
+        # Aggregate proportional income distribution
+        for income_group, population in income_dist.items():
+            proportion = population * (smsv["small_zone_percentage"] / 100)
+            if income_group in aggregated_income_distribution:
+                aggregated_income_distribution[income_group] += proportion
+            else:
+                aggregated_income_distribution[income_group] = proportion
+
+        # Calculate density score
+        density_contribution = smsv_info["density"].iloc[0] * w_density * smsv["small_zone_percentage"] * 100
+
+        # Calculate age score
+        age_contribution = get_age_score(age_dist) * w_age * smsv["small_zone_percentage"]
+
+        # Calculate income score
+        income_contribution = get_income_score(income_dist) * w_income * smsv["small_zone_percentage"]
+
+        # Total contribution for this small area
+        area_score = density_contribution + age_contribution + income_contribution
+        total_score += area_score
+        
+        # Total age score
+        total_age_score += age_contribution
+        # Total income score
+        total_income_score += income_contribution
+        # Total density score 
+        total_density_score += density_contribution
+
+        # Store contribution data for this small area
+        small_area_contributions[smsv["id"]] = {
+            "density_score": density_contribution,
+            "age_score": age_contribution,
+            "income_score": income_contribution,
+            "total_score": area_score,
+            "geometry": geometry,
+        }
+
+    # # Calculate age score
+    # age_score = get_age_score(aggregated_age_distribution) * w_age
+    # total_score += age_score
+
+    # # Calculate income score
+    # income_score = get_income_score(aggregated_income_distribution) * w_income
+    # total_score += income_score
+
+    return {"total_score": total_score, 
+            "income_score": total_income_score, 
+            "age_score": total_age_score, 
+            "density_score": total_density_score, 
+            "age_data": aggregated_age_distribution, 
+            "income_data": aggregated_income_distribution,
+            "small_area_contributions": small_area_contributions,
+    }
 
 def get_age_score(age_distribution):
     """
@@ -189,9 +251,3 @@ def calc_score_line(stations_coordinates: List[Tuple[float]], station_scores: di
     }
     return result
 
-
-
-
-if __name__ == '__main__':
-    filename = os.path.join('output.csv')
-    data = open_file(filename)

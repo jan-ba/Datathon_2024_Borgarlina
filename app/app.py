@@ -49,16 +49,12 @@ ui.page_opts(title="Borgarlínan", fillable=True)
 with ui.sidebar(open="open"):
 
     ui.input_select("year", "Year:", {2025: "2025", 2029: "2029", 2030: "2030"})
-    ui.input_text("inputParam", "Param", "")
     ui.input_slider("rad", "Stop reach radius:", min=200, max=1000, value=400),
+    # station_coord, w_density=1, w_income=1, w_age=1):
+    ui.input_numeric("w_density", "Density Weight", "1")
+    ui.input_numeric("w_income", "Income Weight", "1")
+    ui.input_numeric("w_age", "Age Weight", "1")
     
-    ui.input_checkbox_group(
-        "time",
-        "Stuffs",
-        ["Param1", "Param2"],
-        selected=["Param1", "Param2"],
-        inline=True,
-    )
 
     ui.input_action_button("reset", "Reset zoom")
 
@@ -75,44 +71,67 @@ with ui.layout_columns(col_widths=[8, 4]):
     with ui.layout_column_wrap(width="250px"):
         with ui.card(full_screen=False):
             ui.card_header("Stop Data")
-            @render.text
-            def value():
-                x, y = stop.get()
-                print((y, x))
-                score = initBackend.get_station_score((y, x), radius=input.rad())
-                return f"Score: {score}"
-            @render.plot(alt="A bar chart of age bracket data.")
-            def plot():
-                print("Generating age bracket bar chart")
+            with ui.navset_pill(id="tab"):
+                with ui.nav_panel("Total Score"):
+                    "Total Score"
+                    @render.text
+                    def totalScore():
+                        score = scores()
+                        return f"{round(float(score["total_score"]), 2)}"
                 
-                # Dummy coords
-                # station_coord = (-21.910388, 64.144947)
+                with ui.nav_panel("Income"):
+                    "Income Score"    
+                    @render.text
+                    def incomeScore():
+                        score = scores()
+                        return f"{round(float(score["income_score"]), 2)}"
                 
-                x,y = stop.get()
-                station_coord = (y,x)
-
-                # Fetch age bracket data from the Data_provider instance
-                age_data = initBackend.get_station_score(station_coord)['age_data']  # Assume this returns a dictionary or DataFrame
+                with ui.nav_panel("Age"):
+                    "Age Score" 
+                    @render.text
+                    def ageScore():
+                        score = scores()
+                        return f"{round(float(score["age_score"]), 2)}"
                     
-                # Example structure: {'0-4 ára': 120, '5-9 ára': 140, ...}
-                age_brackets = list(age_data.keys())
-                populations = list(age_data.values())
+                with ui.nav_panel("Density"):
+                    "Density" 
+                    @render.text
+                    def sensityScoer():
+                        score = scores()
+                        return f"{round(float(score["density_score"] * 1000000), 2)} Person / Kilometer"
+                    
+                    
+            @render.plot(alt="A b   ar chart of income distribution.")
+            def income_plot():
+                print("Generating income distribution bar chart")
+                
+                # Get selected stop coordinates
+                x, y = stop.get()
+                station_coord = (y, x)
+                
+                # Fetch income distribution data from the Data_provider instance
+                income_data = initBackend.get_station_score(station_coord, radius=input.rad())['income_data']  # Assume this returns a dictionary
+                
+                # Example structure: {1: 150, 2: 200, 3: 180, ...}
+                income_brackets = list(income_data.keys())
+                populations = list(income_data.values())
                 
                 # Create a Matplotlib figure
                 fig, ax = plt.subplots(figsize=(8, 4))
                 
                 # Create the bar chart
-                ax.bar(age_brackets, populations, color='skyblue')
+                ax.bar(income_brackets, populations, color='lightcoral')
                 
                 # Customize the plot
-                ax.set_title("Population by Age Bracket")
-                ax.set_xlabel("Age Bracket")
+                ax.set_title("Population by Income Bracket")
+                ax.set_xlabel("Income Bracket")
                 ax.set_ylabel("Population")
-                ax.set_xticks(range(len(age_brackets)))
-                ax.set_xticklabels(age_brackets, rotation=45, ha="right")
+                ax.set_xticks(income_brackets)
+                ax.set_xticklabels(income_brackets, rotation=45, ha="right")
                 
                 # Return the figure for rendering in Shiny
                 return fig
+
 
                         
 
@@ -188,3 +207,9 @@ def centerMap():
     mapCenter = input.reset()
     map.widget.zoom = 11.8
     map.widget.center = (64.11,-21.90)
+
+@reactive.calc
+def scores():
+    x, y = stop.get()
+    score = initBackend.get_station_score(station_coord=(y, x), w_density=input.w_density(), w_income=input.w_income(), w_age=input. w_age(), radius=input.rad())
+    return score

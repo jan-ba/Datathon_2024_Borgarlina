@@ -1,5 +1,6 @@
 from typing import List, Dict, Tuple
 from shapely.geometry import Point, shape
+from shapely.validation import make_valid
 from shapely import Polygon
 from data_processing.get_smallAreaInfo import get_smallAreas
 
@@ -32,19 +33,31 @@ def get_station_coverage(
         coordinates = area["geometry"]
         geometry = Polygon(coordinates)
 
+        # Validate and fix invalid geometries
+        if not geometry.is_valid:
+            print(f"Invalid geometry detected for Area ID: {area['id']}. Attempting to fix.")
+            geometry = make_valid(geometry)
+
+        # Simplify geometry to avoid potential issues with highly complex polygons
+        geometry = geometry.simplify(tolerance=0.01, preserve_topology=True)
+
         # Check intersection with the station buffer
         if geometry.intersects(station_buffer):
             # Calculate intersection area
             intersection = geometry.intersection(station_buffer)
             intersection_area = intersection.area
 
-            # Calculate the percentage of the buffer covered by this area
+            # Calculate the percentage of the radius covered by this area
             coverage_percentage = (intersection_area / buffer_area) * 100
+
+            # Calculate the percentage of the area covered by the radius
+            small_zone_percentage = (intersection_area / geometry.area) * 100
 
             # Add the area and coverage percentage to the result
             covered_areas.append({
                 "id": area["id"],  # Include the area's ID or relevant metadata
-                "coverage_percentage": coverage_percentage
+                "coverage_percentage": coverage_percentage,
+                "small_zone_percentage": small_zone_percentage
             })
 
     return covered_areas
