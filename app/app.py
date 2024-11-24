@@ -331,13 +331,16 @@ def lineScore():
     listOflines = {}
     for stop, color in listOfStops:
         x, y = stop
-        listOflines[color] = listOflines.get(color, []).append((y,x))
+        if color not in listOflines:
+            listOflines[color] = []
+        listOflines[color].append((y, x))
+        
     
 
     lines = []
-    for key, val in listOflines:
+    for key, val in listOflines.items():
         
         score = initBackend.line_score(val, w_density=input.w_density(), w_income=input.w_income(), w_age=input. w_age(), radius=input.rad())
-        print(score)
+        
         lines.append((key, score["final_score"]))
     return lines
