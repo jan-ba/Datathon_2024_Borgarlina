@@ -1,1 +1,9 @@
+faicons
+shiny
+shinywidgets
+plotly
+pandas
+ridgeplot
 ipyleaflet
+geopandas
+folium
