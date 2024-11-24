@@ -1,3 +1,13 @@
+---
+title: Borgarlínan
+emoji: 🚌
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+license: unknown
+---
+
 # Gagnaþon 2024 Dashboard
 
 ## Get up and running
