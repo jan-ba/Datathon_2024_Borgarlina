@@ -20,6 +20,7 @@ from shiny.express import input, ui
 
 # Import from backend
 from data_processing.data_provider import Data_provider
+
 initBackend = Data_provider()
 def getScore(cords):
     pass
@@ -99,6 +100,12 @@ with ui.layout_columns(col_widths=[8, 4]):
                     def sensityScoer():
                         score = scores()
                         return f"{round(float(score["density_score"] * 1000000), 2)} Person / Kilometer"
+                
+                with ui.nav_panel("The Line"):
+                    "The Total Score For Lines" 
+                    @render.text
+                    def line():
+                        return lineScore()
                     
                     
             @render.plot(alt="A b   ar chart of income distribution.")
@@ -213,3 +220,21 @@ def scores():
     x, y = stop.get()
     score = initBackend.get_station_score(station_coord=(y, x), w_density=input.w_density(), w_income=input.w_income(), w_age=input. w_age(), radius=input.rad())
     return score
+
+
+@reactive.calc
+def lineScore():
+    listOfStops = generateStops(input.year())
+    listOflines = {}
+    for stop, color in listOfStops:
+        x, y = stop
+        listOflines[color] = listOflines.get(color, []).append((y,x))
+    
+
+    lines = []
+    for key, val in listOflines:
+        
+        score = initBackend.line_score(val, w_density=input.w_density(), w_income=input.w_income(), w_age=input. w_age(), radius=input.rad())
+        print(score)
+        lines.append((key, score["final_score"]))
+    return lines
