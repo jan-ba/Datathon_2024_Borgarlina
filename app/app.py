@@ -132,6 +132,37 @@ with ui.layout_columns(col_widths=[8, 4]):
                 
                 # Return the figure for rendering in Shiny
                 return fig
+            @render.plot(alt="A b   ar chart of income distribution.")
+            def income_plot():
+                print("Generating income distribution bar chart")
+                
+                # Get selected stop coordinates
+                x, y = stop.get()
+                station_coord = (y, x)
+                
+                # Fetch income distribution data from the Data_provider instance
+                income_data = initBackend.get_station_score(station_coord, radius=input.rad())['income_data']  # Assume this returns a dictionary
+                
+                # Example structure: {1: 150, 2: 200, 3: 180, ...}
+                income_brackets = list(income_data.keys())
+                populations = list(income_data.values())
+                
+                # Create a Matplotlib figure
+                fig, ax = plt.subplots(figsize=(8, 4))
+                
+                # Create the bar chart
+                ax.bar(income_brackets, populations, color='lightcoral')
+                
+                # Customize the plot
+                ax.set_title("Population by Income Bracket")
+                ax.set_xlabel("Income Bracket")
+                ax.set_ylabel("Population")
+                ax.set_xticks(income_brackets)
+                ax.set_xticklabels(income_brackets, rotation=45, ha="right")
+                
+                # Return the figure for rendering in Shiny
+                return fig
+
 
                         
 
