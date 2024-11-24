@@ -1,5 +1,8 @@
 import csv
 import os 
+from typing import List, Tuple
+import math
+
 from shapely.validation import make_valid
 
 def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_age) -> float:
@@ -164,7 +167,6 @@ def get_age_score(age_distribution):
 
     return weighted_sum / total_population
 
-
 def get_income_score(income_distribution):
     """
     Calculate a score based on income distribution.
@@ -202,3 +204,50 @@ def get_income_score(income_distribution):
         return 0
 
     return weighted_sum / total_population
+
+def calculate_distance(coord1, coord2):
+        """Calculate Euclidean distance between two coordinates in EPSG:3057 format."""
+        x1, y1 = coord1
+        x2, y2 = coord2
+        return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+def calc_score_line(stations_coordinates: List[Tuple[float]], station_scores: dict[str, list[float]], w_density, w_income, w_age, radius):
+    # print("stations_coords1 ", stations_coordinates)
+    PENALTY_SCALE = 1.0
+    individual_total_scores = [station["total_score"] for station in station_scores]
+    overlap_factors = [0] * len(stations_coordinates)  # Initialize overlap factors for each station
+    total_penalty = 0
+
+    # Aggregate individual scores
+    total_individual_score = sum(individual_total_scores) / len(individual_total_scores) if individual_total_scores else 0
+
+    # Calculate overlap factors
+    for i, coord1 in enumerate(stations_coordinates):
+        for j, coord2 in enumerate(stations_coordinates):
+            if i != j:  # Avoid self-comparison
+                distance = calculate_distance(coord1, coord2)
+                if distance < radius:
+                    # Calculate overlap fraction (inverse of distance within the radius)
+                    overlap_factor = (radius - distance) / radius  # Normalize overlap to [0, 1]
+                    overlap_factors[i] += overlap_factor
+                    overlap_factors[j] += overlap_factor
+
+    # Scale down individual scores based on overlap factors
+    adjusted_scores = [
+        max(0, score * (1 - PENALTY_SCALE * min(1, overlap_factors[i])))  # Cap scaling at 100%
+        for i, score in enumerate(individual_total_scores)
+    ]
+
+    # Final aggregated score
+    final_score = sum(adjusted_scores) / len(adjusted_scores) if adjusted_scores else 0
+
+    # Return detailed results
+    result = {
+        "individual_scores": individual_total_scores,
+        "adjusted_scores": adjusted_scores,
+        "overlap_factors": overlap_factors,
+        "total_individual_score": total_individual_score,
+        "final_score": final_score
+    }
+    return result
+
