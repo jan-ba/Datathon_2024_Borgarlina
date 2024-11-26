@@ -121,6 +121,7 @@ with ui.layout_columns(col_widths=[8, 4]):
                     def incomeScore():
                         score = scores()
                         return f"{round(float(score["income_score"]), 2)}"
+
                     @render.plot(alt="A chart of income distribution.")
                     def income_plot():
                         print("Generating income distribution bar chart")
@@ -264,7 +265,7 @@ def _():
     for layer in map.widget.layers:
         if layer.name == "stops" or layer.name == "radius":
             map.widget.remove_layer(layer)
-
+    i = 0
     for stop, color in stops:
         if type(color) == list:
             smallerRad = 0
@@ -273,6 +274,8 @@ def _():
                 circle.location = stop
                 circle.radius = rad - smallerRad
                 circle.color = c
+                circle.fill_opacity = 0.1
+                circle.name = i
                 circles.append(circle)
                 smallerRad =+ 50
         else:
@@ -281,7 +284,11 @@ def _():
             circle.radius = rad
             circle.color = color
             circle.fill_color = color
+            circle.fill_opacity = 0.1
+            circle.name = str(i)
             circles.append(circle)
+        
+        
 
         icon = AwesomeIcon(name="bus", marker_color="black", icon_color="white")
         icon1 = DivIcon(html = '<div style="border-radius:50%;background-color: black; width: 10px; height: 10px;"></div>')
@@ -290,9 +297,13 @@ def _():
                         icon=icon,
                         icon_anchor=(10,10),
                         icon_size=(0,0),
-                        draggable=False)
+                        draggable=True)
+        marker.name = str(i)
         marker.on_click(functools.partial(create_marker_callback, id=stop))
+        marker.on_move(functools.partial(reset_marker, index=i))
+        
         markers.append(marker)
+        i += 1
     
     layerGroup = LayerGroup(layers=markers, name="stops")
     layerGroup2 = LayerGroup(layers=circles, name="radius")
@@ -311,6 +322,27 @@ def create_marker_callback(id, **kwargs):
     map.widget.zoom = zoom
     map.widget.center = kwargs["coordinates"]
     stop.set(id)
+
+def reset_marker(index, **kwargs):
+    cord = kwargs["location"]
+    x = cord[0]
+    y = cord[1]
+    for layer in map.widget.layers:
+        if layer.name == "radius":  # Check for the correct LayerGroup
+            for circle in layer.layers:
+                if circle.name == str(index):  # Match the Circle by name
+                    circle.location = [x, y]  # Update the Circle's location
+    stop.set((x,y))
+            
+                
+
+    new_core = initBackend.get_station_score(
+                            (y, x), 
+                            radius=input.rad(),
+                            w_density=input.w_density(), 
+                            w_income=input.w_income(), 
+                            w_age=input.w_age()
+                        )
 
 @reactive.effect
 def centerMap():
