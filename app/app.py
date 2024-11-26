@@ -1,14 +1,9 @@
 import faicons as fa
 import sys
 import os
-from ipyleaflet import Map, Marker, LayerGroup, Circle, Icon, AwesomeIcon, DivIcon, basemaps
+from ipyleaflet import Map, Marker, LayerGroup, Circle, Icon, AwesomeIcon, DivIcon, basemaps, GeoJSON
 
-import geopandas as gpd
-from datetime import datetime
-
-import seaborn as sns
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 
 from pandas.core.frame import functools
 # Load data and compute static values
@@ -32,7 +27,7 @@ def generateStops(year):
     smallarea_file = "given_data/smasvaedi_2021.json"
     dwellings_file = "given_data/ibudir.csv"
 
-    gpdStops, _, _ = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
+    gpdStops, _, all_small_areas = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
 
     points = []
     stopData = {}
@@ -41,9 +36,9 @@ def generateStops(year):
         point = row["geometry"]
         color = row["line"]
         if color not in ["red", "yellow", "blue", "green", "purple", "orange"]:
-            color = color.split("/")
+            color = color.split("/") 
         points.append(((point.y, point.x), color))
-    return points
+    return points, all_small_areas
 
 # Add page title and sidebar
 ui.page_opts(title="Borgarlínan", fillable=True)
@@ -293,15 +288,41 @@ ui.include_css(app_dir / "styles.css")
 def _():
     
     year = input.year()
-    stops = generateStops(year)
+    stops, small_areas = generateStops(year)
     rad = input.rad()
     markers = []
     circles = []
     
-    for layer in map.widget.layers:
-        if layer.name == "stops" or layer.name == "radius":
+    for layer in map.widget.layers[:]:
+        if layer.name in ["stops", "radius", "polygons", "heatmap"]:
             map.widget.remove_layer(layer)
 
+    # Add polygons from small_areas
+    polygons_layer = []
+    for _, area in small_areas.iterrows():
+        geojson_data = area["geometry"].__geo_interface__
+        geojson_dict = {
+            "type": "Feature",
+            "properties": {},
+            "geometry": geojson_data
+        }
+
+        geojson = GeoJSON(
+            data=geojson_dict,  # Pass the dictionary here
+            style={
+                "color": "#005485",       # Border color
+                "fillColor": "white",  # Fill color
+                "opacity": 0.5,        # Border opacity
+                "weight": 1.0,         # Border thickness
+                "dashArray": "5, 5",   # Optional dashed border
+                "fillOpacity": 0.3     # Fill opacity
+            },
+            hover_style={"color": "#005485", "weight": 1},  # Highlight on hover
+            name="polygons"
+        )
+        polygons_layer.append(geojson)
+
+    i = 0
     for stop, color in stops:
         if type(color) == list:
             smallerRad = 0
@@ -310,6 +331,8 @@ def _():
                 circle.location = stop
                 circle.radius = rad - smallerRad
                 circle.color = c
+                circle.fill_opacity = 0.1
+                circle.name = i
                 circles.append(circle)
                 smallerRad =+ 50
         else:
@@ -318,23 +341,35 @@ def _():
             circle.radius = rad
             circle.color = color
             circle.fill_color = color
+            circle.fill_opacity = 0.1
+            circle.name = str(i)
             circles.append(circle)
+        
+        
 
         icon = AwesomeIcon(name="bus", marker_color="black", icon_color="white")
-        icon1 = DivIcon(html = '<div style="border-radius:50%;background-color: black; width: 10px; height: 10px;"></div>')
-        icon2 = Icon(icon_url="marker.png")
+        # icon1 = DivIcon(html = '<div style="border-radius:50%;background-color: black; width: 10px; height: 10px;"></div>')
+        # icon2 = Icon(icon_url="marker.png")
         marker = Marker(location=stop,
                         icon=icon,
                         icon_anchor=(10,10),
                         icon_size=(0,0),
-                        draggable=False)
+                        draggable=True)
+        marker.name = str(i)
         marker.on_click(functools.partial(create_marker_callback, id=stop))
+        marker.on_move(functools.partial(reset_marker, index=i))
+        
         markers.append(marker)
+        i += 1
     
     layerGroup = LayerGroup(layers=markers, name="stops")
     layerGroup2 = LayerGroup(layers=circles, name="radius")
     map.widget.add(layerGroup)
     map.widget.add(layerGroup2)
+
+    # Add polygon layers to the map
+    polygon_group = LayerGroup(layers=polygons_layer, name="polygons")
+    map.widget.add(polygon_group)
     
     
 stop = reactive.value()
@@ -348,6 +383,18 @@ def create_marker_callback(id, **kwargs):
     map.widget.zoom = zoom
     map.widget.center = kwargs["coordinates"]
     stop.set(id)
+
+def reset_marker(index, **kwargs):
+    cord = kwargs["location"]
+    x = cord[0]
+    y = cord[1]
+    for layer in map.widget.layers:
+        if layer.name == "radius":  # Check for the correct LayerGroup
+            for circle in layer.layers:
+                if circle.name == str(index):  # Match the Circle by name
+                    circle.location = [x, y]  # Update the Circle's location
+    stop.set((x,y))
+            
 
 @reactive.effect
 def centerMap():
@@ -363,8 +410,7 @@ def scores():
 
 @reactive.calc
 def lineScore():
-    # Generate stops based on the input year
-    listOfStops = generateStops(input.year())
+    listOfStops, _ = generateStops(input.year())
     listOflines = {}
 
     # Handle stops with single and multiple colors
