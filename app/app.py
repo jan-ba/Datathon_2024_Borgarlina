@@ -75,42 +75,42 @@ with ui.layout_columns(col_widths=[8, 4]):
             
     with ui.layout_column_wrap(width="450px"):
             with ui.layout_columns(col_widths=(6, 6)):
-                with ui.value_box(theme="bg-gradient-red-yellow"):
+                with ui.value_box(theme="bg-gradient-red-yellow",  showcase=fa.icon_svg("bus", width="50px"),):
                     "Red line"
                     @render.text
                     def render_line_score():
-                        return str(lineScore().get("red", 0))
+                        return str(int(lineScore().get("red", 0)))
 
-                with ui.value_box(theme="bg-gradient-blue-cyan"):
+                with ui.value_box(theme="bg-gradient-blue-cyan",showcase=fa.icon_svg("bus", width="50px"),):
                     
                     "Blue line"
                     @render.text
                     def render_line_score1():
-                        return str(lineScore().get("blue", 0))
+                        return str(int(lineScore().get("blue", 0)))
 
-                with ui.value_box(theme="bg-gradient-orange-yellow"):
+                with ui.value_box(theme="bg-gradient-orange-yellow",showcase=fa.icon_svg("bus", width="50px"),):
                     "Orange line"
                     @render.text
                     def render_line_score2():
-                        return str(lineScore().get("orange", 0))
+                        return str(int(lineScore().get("orange", 0)))
 
-                with ui.value_box(theme="bg-gradient-indigo-purple"):
+                with ui.value_box(theme="bg-gradient-indigo-purple",showcase=fa.icon_svg("bus", width="50px"),):
                     "Purple line"
                     @render.text
                     def render_line_score3():
-                        return str(lineScore().get("purple", 0))
+                        return str(int(lineScore().get("purple", 0)))
 
-                with ui.value_box(theme="bg-gradient-green-teal"):
+                with ui.value_box(theme="bg-gradient-green-teal",showcase=fa.icon_svg("bus", width="50px"),):
                     "Green line"
                     @render.text
                     def render_line_score4():
-                        return str(lineScore().get("green", 0))
+                        return str(int(lineScore().get("green", 0)))
 
                 with ui.value_box():
                     "Total score"
                     @render.text
                     def render_line_score5():
-                        return str(sum(lineScore().get(color, 0) for color in ["red", "blue", "orange", "purple", "green"]))
+                        return str(int(sum(lineScore().get(color, 0) for color in ["red", "blue", "orange", "purple", "green"])))
 
             
             with ui.card(min_height="600px"):
@@ -332,7 +332,7 @@ def _():
                 circle.radius = rad - smallerRad
                 circle.color = c
                 circle.fill_opacity = 0.1
-                circle.name = i
+                circle.name = str(i)
                 circles.append(circle)
                 smallerRad =+ 50
         else:
