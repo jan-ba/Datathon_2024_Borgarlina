@@ -74,49 +74,64 @@ with ui.layout_columns(col_widths=[8, 4]):
     
             
     with ui.layout_column_wrap(width="450px"):
-            with ui.layout_columns(col_widths=(6, 6)):
+            with ui.layout_columns(col_widths=(6, 6), min_height="450px"):
                 with ui.value_box(theme="text-red",  showcase=fa.icon_svg("bus", width="50px"),):
-                    "Red line"
+                    "Average score"
                     @render.text
                     def render_line_score():
-                        return str(int(lineScore().get("red", 0)))
-
+                        score = lineScore().get("red", 0)
+                        if score:
+                            return str(int(score))
+                        else:
+                            return str("Pending")
                 with ui.value_box(theme="text-blue",showcase=fa.icon_svg("bus", width="50px"),):
-                    
-                    "Blue line"
+                    "Average score"
                     @render.text
                     def render_line_score1():
-                        return str(int(lineScore().get("blue", 0)))
-
+                        score = lineScore().get("blue", 0)
+                        if score:
+                            return str(int(score))
+                        else:
+                            return str("Pending")
                 with ui.value_box(theme="text-yellow" ,showcase=fa.icon_svg("bus", width="50px"),):
-                    "Yellow line"
+                    "Average score"
                     @render.text
                     def render_line_score2():
-                        return str(int(lineScore().get("orange", 0)))
+                        score = lineScore().get("orange", 0)
+                        if score:
+                            return str(int(score))
+                        else:
+                            return str("Pending")
 
-                with ui.value_box(theme="text-purple",showcase=fa.icon_svg("bus", width="50px"),):
-                    "Purple line"
-                    @render.text
-                    def render_line_score3():
-                        return str(int(lineScore().get("purple", 0)))
-
+                
                 with ui.value_box(theme="text-green",showcase=fa.icon_svg("bus", width="50px"),):
-                    "Green line"
+                    "Average score"
                     @render.text
                     def render_line_score4():
-                        return str(int(lineScore().get("green", 0)))
-
+                        score = lineScore().get("green", 0)
+                        if score:
+                            return str(int(score))
+                        else:
+                            return str("Pending")
+                        
+                with ui.value_box(theme="text-purple",showcase=fa.icon_svg("bus", width="50px"),):
+                    "Average score"
+                    @render.text
+                    def render_line_score3():
+                        score = lineScore().get("purple", 0)
+                        if score:
+                            return str(int(score))
+                        else:
+                            return str("Pending")
+                        
                 with ui.value_box(theme="text-black",showcase=fa.icon_svg("route", width="50px")):
-                    "Total score"
+                    "Total average score"
                     @render.text
                     def render_line_score5():
                         return str(int(sum(lineScore().get(color, 0) for color in ["red", "blue", "orange", "purple", "green"])))
 
             
-            with ui.card(min_height="600px"):
-                ui.card_header("Stop Data")
-                
-
+            with ui.card(min_height="450px"):                
                 with ui.navset_pill(id="tab"):
                     with ui.nav_panel("Score"):
                         
@@ -140,7 +155,7 @@ with ui.layout_columns(col_widths=[8, 4]):
                             colors = ["#FD4D86", "#36DEC2", "#704CB0"]  # Custom colors for the segments
                             
                             # Create a Matplotlib figure
-                            fig, ax = plt.subplots(figsize=(6, 6))
+                            fig, ax = plt.subplots(figsize=(5, 5))
                             
                             # Create the pie chart
                             ax.pie(
@@ -180,7 +195,7 @@ with ui.layout_columns(col_widths=[8, 4]):
                             populations = list(income_data.values())
                             
                             # Create a Matplotlib figure
-                            fig, ax = plt.subplots(figsize=(8, 4))
+                            fig, ax = plt.subplots(figsize=(6, 3))
                             
                             # Create the bar chart
                             ax.bar(income_brackets, populations, color='#36DEC2')
@@ -218,7 +233,7 @@ with ui.layout_columns(col_widths=[8, 4]):
                             populations = list(age_data.values())
                             
                             # Create a Matplotlib figure
-                            fig, ax = plt.subplots(figsize=(8, 4))
+                            fig, ax = plt.subplots(figsize=(6, 3))
                             
                             # Create the bar chart with custom colors
                             ax.bar(age_brackets, populations, color='#FD4D86')
@@ -263,7 +278,7 @@ with ui.layout_columns(col_widths=[8, 4]):
                             density_scores = [area_data['density_score'] for area_data in small_area_contributions.values()]
                             
                             # Create a Matplotlib figure
-                            fig, ax = plt.subplots(figsize=(8, 4))
+                            fig, ax = plt.subplots(figsize=(6, 3))
                             
                             # Create the bar chart
                             ax.bar(area_ids, density_scores, color='#704CB0')
