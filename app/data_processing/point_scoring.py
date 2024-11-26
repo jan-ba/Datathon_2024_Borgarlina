@@ -49,9 +49,6 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
     for smsv in cov_smsv:
         smsv_info = df_features[df_features["smallAreaId"] == smsv["id"]]
 
-        # Get geometry of the small area
-        geometry = smsv_info["geometry"].iloc[0]
-
         # Get age distribution for the year 2024
         age_dist = smsv_info["age_distribution"].iloc[0].get(2024, {})  # only interested in 2024 for current score
         
@@ -100,7 +97,6 @@ def score_current(station_coord, df_features, cov_smsv, w_density, w_income, w_a
             "age_score": age_contribution,
             "income_score": income_contribution,
             "total_score": area_score,
-            "geometry": geometry,
         }
 
     # # Calculate age score

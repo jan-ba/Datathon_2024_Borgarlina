@@ -43,7 +43,6 @@ def load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_f
     # Join dataframes
     pop2024_smallarea = smallarea_wgs84.merge(pop2024, left_on='smsv', right_on='smasvaedi', how='left')
     all_dwellings_smallarea = smallarea_wgs84.merge(all_dwellings, left_on='fid', right_on='smasvaedi', how='left')
-
     return lina1_wgs84, pop2024_smallarea, all_dwellings_smallarea
 
 def create_map(lina1_wgs84, all_dwellings_smallarea):
@@ -65,6 +64,7 @@ def create_map(lina1_wgs84, all_dwellings_smallarea):
         line_opacity=0.2,
         legend_name="Dwellings"
     ).add_to(m)
+
 
     # Add markers for lina1_wgs84
     for _, r in lina1_wgs84.iterrows():

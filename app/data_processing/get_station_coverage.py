@@ -35,7 +35,7 @@ def get_station_coverage(
 
         # Validate and fix invalid geometries
         if not geometry.is_valid:
-            print(f"Invalid geometry detected for Area ID: {area['id']}. Attempting to fix.")
+            # print(f"Invalid geometry detected for Area ID: {area['id']}. Attempting to fix.")
             geometry = make_valid(geometry)
 
         # Simplify geometry to avoid potential issues with highly complex polygons
