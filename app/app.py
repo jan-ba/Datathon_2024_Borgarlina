@@ -334,15 +334,6 @@ def reset_marker(index, **kwargs):
                     circle.location = [x, y]  # Update the Circle's location
     stop.set((x,y))
             
-                
-
-    new_core = initBackend.get_station_score(
-                            (y, x), 
-                            radius=input.rad(),
-                            w_density=input.w_density(), 
-                            w_income=input.w_income(), 
-                            w_age=input.w_age()
-                        )
 
 @reactive.effect
 def centerMap():
