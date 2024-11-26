@@ -1,14 +1,9 @@
 import faicons as fa
 import sys
 import os
-from ipyleaflet import Map, Marker, LayerGroup, Circle, Icon, AwesomeIcon, DivIcon, basemaps
+from ipyleaflet import Map, Marker, LayerGroup, Circle, Icon, AwesomeIcon, DivIcon, basemaps, GeoJSON
 
-import geopandas as gpd
-from datetime import datetime
-
-import seaborn as sns
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 
 from pandas.core.frame import functools
 # Load data and compute static values
@@ -32,7 +27,7 @@ def generateStops(year):
     smallarea_file = "given_data/smasvaedi_2021.json"
     dwellings_file = "given_data/ibudir.csv"
 
-    gpdStops, _, _ = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
+    gpdStops, _, all_small_areas = load_and_preprocess_data(geojson_file, pop_file, smallarea_file, dwellings_file)
 
     points = []
     stopData = {}
@@ -41,9 +36,9 @@ def generateStops(year):
         point = row["geometry"]
         color = row["line"]
         if color not in ["red", "yellow", "blue", "green", "purple", "orange"]:
-            color = color.split("/")
+            color = color.split("/") 
         points.append(((point.y, point.x), color))
-    return points
+    return points, all_small_areas
 
 # Add page title and sidebar
 ui.page_opts(title="Borgarlínan", fillable=True)
@@ -83,8 +78,6 @@ with ui.layout_columns(col_widths=[8, 4]):
                     
                     @render.plot(alt="A pie chart of score contributions from age, income, and density.")
                     def contribution_pie_chart():
-                        print("Generating pie chart of contributions")
-                        
                         # Get score components
                         score = scores()
                         age_contribution = score["age_score"]
@@ -197,10 +190,8 @@ with ui.layout_columns(col_widths=[8, 4]):
                     @render.text
                     def sensityScoer():
                         score = scores()
-                        return f"{round(float(score["density_score"] * 1000000), 2)} Person / Kilometer"
-                
-                
                         return f"{round(float(score["density_score"]), 2)}"
+
                     @render.plot(alt="A bar chart of density scores for all areas within the radius.")
                     def density_plot():
                         print("Generating density score bar chart")
@@ -257,14 +248,40 @@ ui.include_css(app_dir / "styles.css")
 def _():
     
     year = input.year()
-    stops = generateStops(year)
+    stops, small_areas = generateStops(year)
     rad = input.rad()
     markers = []
     circles = []
     
-    for layer in map.widget.layers:
-        if layer.name == "stops" or layer.name == "radius":
+    for layer in map.widget.layers[:]:
+        if layer.name in ["stops", "radius", "polygons", "heatmap"]:
             map.widget.remove_layer(layer)
+
+    # Add polygons from small_areas
+    polygons_layer = []
+    for _, area in small_areas.iterrows():
+        geojson_data = area["geometry"].__geo_interface__
+        geojson_dict = {
+            "type": "Feature",
+            "properties": {},
+            "geometry": geojson_data
+        }
+
+        geojson = GeoJSON(
+            data=geojson_dict,  # Pass the dictionary here
+            style={
+                "color": "#005485",       # Border color
+                "fillColor": "white",  # Fill color
+                "opacity": 0.5,        # Border opacity
+                "weight": 1.0,         # Border thickness
+                "dashArray": "5, 5",   # Optional dashed border
+                "fillOpacity": 0.3     # Fill opacity
+            },
+            hover_style={"color": "#005485", "weight": 1},  # Highlight on hover
+            name="polygons"
+        )
+        polygons_layer.append(geojson)
+
     i = 0
     for stop, color in stops:
         if type(color) == list:
@@ -291,8 +308,8 @@ def _():
         
 
         icon = AwesomeIcon(name="bus", marker_color="black", icon_color="white")
-        icon1 = DivIcon(html = '<div style="border-radius:50%;background-color: black; width: 10px; height: 10px;"></div>')
-        icon2 = Icon(icon_url="marker.png")
+        # icon1 = DivIcon(html = '<div style="border-radius:50%;background-color: black; width: 10px; height: 10px;"></div>')
+        # icon2 = Icon(icon_url="marker.png")
         marker = Marker(location=stop,
                         icon=icon,
                         icon_anchor=(10,10),
@@ -309,6 +326,10 @@ def _():
     layerGroup2 = LayerGroup(layers=circles, name="radius")
     map.widget.add(layerGroup)
     map.widget.add(layerGroup2)
+
+    # Add polygon layers to the map
+    polygon_group = LayerGroup(layers=polygons_layer, name="polygons")
+    map.widget.add(polygon_group)
     
     
 stop = reactive.value()
@@ -350,16 +371,14 @@ def scores():
 
 @reactive.calc
 def lineScore():
-    listOfStops = generateStops(input.year())
+    listOfStops, _ = generateStops(input.year())
     listOflines = {}
     for stop, color in listOfStops:
         x, y = stop
         if color not in listOflines:
             listOflines[color] = []
         listOflines[color].append((y, x))
-        
     
-
     lines = []
     for key, val in listOflines.items():
         
