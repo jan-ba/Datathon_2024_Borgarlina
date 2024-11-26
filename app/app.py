@@ -75,38 +75,38 @@ with ui.layout_columns(col_widths=[8, 4]):
             
     with ui.layout_column_wrap(width="450px"):
             with ui.layout_columns(col_widths=(6, 6)):
-                with ui.value_box(theme="bg-gradient-red-yellow",  showcase=fa.icon_svg("bus", width="50px"),):
+                with ui.value_box(theme="text-red",  showcase=fa.icon_svg("bus", width="50px"),):
                     "Red line"
                     @render.text
                     def render_line_score():
                         return str(int(lineScore().get("red", 0)))
 
-                with ui.value_box(theme="bg-gradient-blue-cyan",showcase=fa.icon_svg("bus", width="50px"),):
+                with ui.value_box(theme="text-blue",showcase=fa.icon_svg("bus", width="50px"),):
                     
                     "Blue line"
                     @render.text
                     def render_line_score1():
                         return str(int(lineScore().get("blue", 0)))
 
-                with ui.value_box(theme="bg-gradient-orange-yellow",showcase=fa.icon_svg("bus", width="50px"),):
-                    "Orange line"
+                with ui.value_box(theme="text-yellow" ,showcase=fa.icon_svg("bus", width="50px"),):
+                    "Yellow line"
                     @render.text
                     def render_line_score2():
                         return str(int(lineScore().get("orange", 0)))
 
-                with ui.value_box(theme="bg-gradient-indigo-purple",showcase=fa.icon_svg("bus", width="50px"),):
+                with ui.value_box(theme="text-purple",showcase=fa.icon_svg("bus", width="50px"),):
                     "Purple line"
                     @render.text
                     def render_line_score3():
                         return str(int(lineScore().get("purple", 0)))
 
-                with ui.value_box(theme="bg-gradient-green-teal",showcase=fa.icon_svg("bus", width="50px"),):
+                with ui.value_box(theme="text-green",showcase=fa.icon_svg("bus", width="50px"),):
                     "Green line"
                     @render.text
                     def render_line_score4():
                         return str(int(lineScore().get("green", 0)))
 
-                with ui.value_box():
+                with ui.value_box(theme="text-black",showcase=fa.icon_svg("route", width="50px")):
                     "Total score"
                     @render.text
                     def render_line_score5():
@@ -115,10 +115,15 @@ with ui.layout_columns(col_widths=[8, 4]):
             
             with ui.card(min_height="600px"):
                 ui.card_header("Stop Data")
+                
+
                 with ui.navset_pill(id="tab"):
-                    with ui.nav_panel("Score Contributions"):
+                    with ui.nav_panel("Score"):
                         
-                        
+                        @render.text
+                        def totalScore():
+                            score = scores()
+                            return "Total score: " + str(int(score["total_score"]))
                         @render.plot(alt="A pie chart of score contributions from age, income, and density.")
                         def contribution_pie_chart():
                             print("Generating pie chart of contributions")
