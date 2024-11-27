@@ -1,3 +1,13 @@
+---
+title: Borgarlínan
+emoji: 🚌
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+license: unknown
+---
+
 # Borgarlína
 
 Dashboard developed during the [2024 Gagnaþon](https://vidburdir.hagstofa.is/events/gagnathon-2024), a hackathon hosted by [Statistics Iceland](https://statice.is/).
