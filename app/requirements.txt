@@ -7,3 +7,4 @@ ridgeplot
 ipyleaflet
 geopandas
 folium
+matplotlib
