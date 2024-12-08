@@ -40,6 +40,46 @@ def generateStops(year):
         points.append(((point.y, point.x), color))
     return points, all_small_areas
 
+
+@reactive.effect
+@reactive.event(input.show)
+def show_important_message():
+    m = ui.modal(
+        ui.div(
+            ui.div(
+                ui.p(
+                    "Our team’s solution for evaluating the Borgarlína bus stop placements was awarded the best solution at the "
+                    "Gagnavist 2024 conference. Learn more about the event here: ",
+                    ui.a(
+                        "Datathon 2024",
+                        href="https://www.ihpc.is/events/radstefna-um-islenska-gagnavistkerfid---gagnathon-2024",
+                        target="_blank"
+                        )
+                    ),                
+                ui.div(
+                ui.p("Highlights:"),
+                ui.div("- Integrated datasets: Income deciles, population density, and age distribution."),
+                ui.div("- Developed the solution over a single weekend!"),
+                ),
+                ui.p(""),
+                ui.div(
+                    ui.p("Special thanks to:"),
+                    ui.div("- Statistics Iceland"),
+                    ui.div("- The Ministry of Finance and Economic Affairs"),
+                    ui.div("- The Ministry of Higher Education, Innovation, and Industry"),
+                ),
+                ui.p(""),
+                ui.p("Looking forward to participating again next year!"),
+                ui.p("Alexander, Birgir, Elvar, Thomas, and Jan")
+            ),
+        ), 
+        size="xl",       
+        easy_close=True,
+        footer=None,
+        title="Datathon 2024: A Winning Experience!"    
+    )
+    ui.modal_show(m)
+
 # Add page title and sidebar
 ui.page_opts(title="Borgarlínan", fillable=True)
 
@@ -54,6 +94,7 @@ with ui.sidebar(open="open"):
     
 
     ui.input_action_button("reset", "Reset zoom")
+    ui.input_action_button("show", "About Us")
 
 with ui.layout_columns(col_widths=[8, 4]):
     
