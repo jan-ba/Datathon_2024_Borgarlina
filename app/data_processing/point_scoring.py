@@ -201,32 +201,41 @@ def get_income_score(income_distribution):
 
     return weighted_sum / total_population
 
-def calculate_distance(coord1, coord2):
-        """Calculate Euclidean distance between two coordinates in EPSG:3057 format."""
-        x1, y1 = coord1
-        x2, y2 = coord2
-        return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-def calc_score_line(stations_coordinates: List[Tuple[float]], station_scores: dict[str, list[float]], w_density, w_income, w_age, radius):
-    # print("stations_coords1 ", stations_coordinates)
+from typing import List, Tuple, Dict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import math
+
+def calculate_distance(coord1: Tuple[float, float], coord2: Tuple[float, float]) -> float:
+    """Calculate the Euclidean distance between two coordinates."""
+    return math.sqrt((coord1[0] - coord2[0])**2 + (coord1[1] - coord2[1])**2)
+
+def calc_score_line(stations_coordinates: List[Tuple[float, float]], station_scores: Dict[str, List[float]], w_density, w_income, w_age, radius):
     PENALTY_SCALE = 1.0
     individual_total_scores = [station["total_score"] for station in station_scores]
     overlap_factors = [0] * len(stations_coordinates)  # Initialize overlap factors for each station
-    total_penalty = 0
-
-    # Aggregate individual scores
     total_individual_score = sum(individual_total_scores) / len(individual_total_scores) if individual_total_scores else 0
 
-    # Calculate overlap factors
-    for i, coord1 in enumerate(stations_coordinates):
+    def compute_overlap(i: int, coord1: Tuple[float, float]) -> List[float]:
+        """Compute the overlap factors for a single station."""
+        local_overlap = [0] * len(stations_coordinates)
         for j, coord2 in enumerate(stations_coordinates):
             if i != j:  # Avoid self-comparison
                 distance = calculate_distance(coord1, coord2)
                 if distance < radius:
                     # Calculate overlap fraction (inverse of distance within the radius)
                     overlap_factor = (radius - distance) / radius  # Normalize overlap to [0, 1]
-                    overlap_factors[i] += overlap_factor
-                    overlap_factors[j] += overlap_factor
+                    local_overlap[i] += overlap_factor
+                    local_overlap[j] += overlap_factor
+        return local_overlap
+
+    # Multithreading the computation of overlap factors
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(compute_overlap, i, coord1): i for i, coord1 in enumerate(stations_coordinates)}
+        for future in as_completed(futures):
+            i = futures[future]
+            local_overlap = future.result()
+            overlap_factors = [sum(x) for x in zip(overlap_factors, local_overlap)]
 
     # Scale down individual scores based on overlap factors
     adjusted_scores = [
@@ -246,4 +255,5 @@ def calc_score_line(stations_coordinates: List[Tuple[float]], station_scores: di
         "final_score": final_score
     }
     return result
+
 
